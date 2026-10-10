@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Copy, Eye, Code } from 'lucide-react';
+import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud } from 'lucide-react';
 import type { EmailData, Product } from './types';
 import { generateMailchimpHtml } from './generateMailchimpHtml';
+import Login from './Login';
 
 const DEFAULT_DATA: EmailData = {
   title: 'New Plugins Added to the Vault!',
@@ -20,7 +21,18 @@ const DEFAULT_DATA: EmailData = {
   footerText: '© 2026 FREQ. All rights reserved. You are receiving this email because you opted in via our website.',
 };
 
+interface SavedTemplate {
+  name: string;
+  data: EmailData;
+}
+
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('freq_auth') === 'true' || sessionStorage.getItem('freq_auth') === 'true';
+  });
+
+  const [isCloudSynced, setIsCloudSynced] = useState(false);
+
   const [data, setData] = useState<EmailData>(() => {
     const saved = localStorage.getItem('freqMailchimpDraft');
     if (saved) {
@@ -33,11 +45,6 @@ export default function App() {
     return DEFAULT_DATA;
   });
 
-  interface SavedTemplate {
-    name: string;
-    data: EmailData;
-  }
-
   const [savedTemplates, setSavedTemplates] = useState<SavedTemplate[]>(() => {
     const saved = localStorage.getItem('freqMailchimpTemplates');
     if (saved) {
@@ -49,6 +56,23 @@ export default function App() {
     }
     return [];
   });
+
+  // Check cloud templates on mount
+  useEffect(() => {
+    fetch('/api/templates')
+      .then(res => res.json())
+      .then(result => {
+        if (result.cloudEnabled) {
+          setIsCloudSynced(true);
+          if (Array.isArray(result.templates) && result.templates.length > 0) {
+            setSavedTemplates(result.templates);
+          }
+        }
+      })
+      .catch(() => {
+        // running locally or without backend
+      });
+  }, []);
   
   useEffect(() => {
     localStorage.setItem('freqMailchimpDraft', JSON.stringify(data));
@@ -58,14 +82,44 @@ export default function App() {
     localStorage.setItem('freqMailchimpTemplates', JSON.stringify(savedTemplates));
   }, [savedTemplates]);
 
+  const syncTemplatesToCloud = async (templatesToSync: SavedTemplate[]) => {
+    try {
+      const res = await fetch('/api/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(templatesToSync),
+      });
+      const data = await res.json();
+      if (data.cloudEnabled) setIsCloudSynced(true);
+    } catch (e) {
+      console.warn('Cloud sync skipped:', e);
+    }
+  };
+
+  const handleLogin = (remember: boolean) => {
+    if (remember) {
+      localStorage.setItem('freq_auth', 'true');
+    } else {
+      sessionStorage.setItem('freq_auth', 'true');
+    }
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('freq_auth');
+    sessionStorage.removeItem('freq_auth');
+    setIsAuthenticated(false);
+  };
+
   const saveCurrentAsTemplate = () => {
     const name = window.prompt('Enter a name for this template:');
     if (!name) return;
     
     setSavedTemplates(prev => {
-      // replace if exists
       const filtered = prev.filter(t => t.name !== name);
-      return [...filtered, { name, data }];
+      const updated = [...filtered, { name, data }];
+      syncTemplatesToCloud(updated);
+      return updated;
     });
   };
 
@@ -77,7 +131,11 @@ export default function App() {
 
   const deleteTemplate = (name: string) => {
     if (window.confirm(`Are you sure you want to delete template "${name}"?`)) {
-      setSavedTemplates(prev => prev.filter(t => t.name !== name));
+      setSavedTemplates(prev => {
+        const updated = prev.filter(t => t.name !== name);
+        syncTemplatesToCloud(updated);
+        return updated;
+      });
     }
   };
 
@@ -126,6 +184,10 @@ export default function App() {
     }));
   };
 
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-freqDarker text-white">
       {/* LEFT SIDE - FORM */}
@@ -134,16 +196,30 @@ export default function App() {
           
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold mb-1">FREQ Newsletter Generator</h1>
+              <div className="flex items-center space-x-2">
+                <h1 className="text-2xl font-bold mb-1">FREQ Newsletter Generator</h1>
+                {isCloudSynced && (
+                  <span className="flex items-center text-[11px] bg-green-950/60 text-green-400 border border-green-800/60 rounded-full px-2 py-0.5 mb-1" title="Templates are synced across all your devices in real-time">
+                    <Cloud size={11} className="mr-1" /> Cloud Synced
+                  </span>
+                )}
+              </div>
               <p className="text-gray-400 text-sm">Create Mailchimp-compatible HTML templates for new plugin drops.</p>
             </div>
             
-            <div className="relative group">
+            <div className="flex items-center space-x-2">
               <button 
                 onClick={saveCurrentAsTemplate}
                 className="bg-freqGray border border-gray-700 hover:border-freqBlue text-sm px-3 py-1.5 rounded-md transition-colors"
               >
                 Save as Template
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-[#151515] hover:bg-[#202020] border border-gray-800 text-gray-400 hover:text-white p-2 rounded-md transition-colors"
+                title="Log out"
+              >
+                <LogOut size={15} />
               </button>
             </div>
           </div>
