@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Copy, Eye, Code, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Copy, Eye, Code } from 'lucide-react';
 import type { EmailData, Product } from './types';
 import { generateMailchimpHtml } from './generateMailchimpHtml';
 
