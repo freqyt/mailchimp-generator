@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud } from 'lucide-react';
-import type { EmailData, Product } from './types';
+import type { EmailData, Product, SocialLink } from './types';
 import { generateMailchimpHtml } from './generateMailchimpHtml';
 import Login from './Login';
+
+const DEFAULT_SOCIALS: SocialLink[] = [
+  { id: '1', name: 'Instagram', url: 'https://instagram.com/freqyt', enabled: true },
+  { id: '2', name: 'Sounds List', url: 'https://list.freq.yt/', enabled: true },
+  { id: '3', name: 'Booking', url: 'https://booking.freq.yt/', enabled: true },
+  { id: '4', name: 'YouTube', url: 'https://youtube.com/@freqyt', enabled: false },
+];
 
 const DEFAULT_DATA: EmailData = {
   title: 'New Plugins Added to the Vault!',
@@ -19,6 +26,7 @@ const DEFAULT_DATA: EmailData = {
     }
   ],
   footerText: '© 2026 FREQ. All rights reserved. You are receiving this email because you opted in via our website.',
+  socialLinks: DEFAULT_SOCIALS,
 };
 
 interface SavedTemplate {
@@ -37,7 +45,9 @@ export default function App() {
     const saved = localStorage.getItem('freqMailchimpDraft');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (!parsed.socialLinks) parsed.socialLinks = DEFAULT_SOCIALS;
+        return parsed;
       } catch (e) {
         return DEFAULT_DATA;
       }
@@ -182,6 +192,28 @@ export default function App() {
       ...prev,
       products: prev.products.filter((_, i) => i !== index)
     }));
+  };
+
+  const updateSocialLink = (index: number, field: keyof SocialLink, value: any) => {
+    const list = [...(data.socialLinks || DEFAULT_SOCIALS)];
+    list[index] = { ...list[index], [field]: value };
+    setData(prev => ({ ...prev, socialLinks: list }));
+  };
+
+  const addSocialLink = () => {
+    const list = [...(data.socialLinks || DEFAULT_SOCIALS)];
+    list.push({
+      id: Date.now().toString(),
+      name: 'Website',
+      url: 'https://',
+      enabled: true,
+    });
+    setData(prev => ({ ...prev, socialLinks: list }));
+  };
+
+  const removeSocialLink = (index: number) => {
+    const list = (data.socialLinks || DEFAULT_SOCIALS).filter((_, i) => i !== index);
+    setData(prev => ({ ...prev, socialLinks: list }));
   };
 
   if (!isAuthenticated) {
@@ -416,6 +448,77 @@ export default function App() {
                       />
                     </div>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SOCIAL LINKS */}
+          <div className="space-y-4 pt-4">
+            <div className="flex justify-between items-end border-b border-freqGray pb-2">
+              <div>
+                <h2 className="text-lg font-semibold">Social & Brand Links</h2>
+                <p className="text-xs text-gray-500">Toggle or customize individual pills displayed above the footer.</p>
+              </div>
+              <button 
+                onClick={addSocialLink}
+                className="flex items-center space-x-1 text-xs bg-[#181818] hover:bg-[#252525] border border-gray-700 text-gray-200 px-2.5 py-1.5 rounded-md transition-colors"
+              >
+                <Plus size={14} />
+                <span>Add Link</span>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {(data.socialLinks || DEFAULT_SOCIALS).map((social, i) => (
+                <div 
+                  key={social.id}
+                  className={`flex items-center space-x-3 p-3 rounded-lg border transition-all ${
+                    social.enabled 
+                      ? 'bg-[#101010] border-gray-800' 
+                      : 'bg-[#0a0a0a] border-gray-900 opacity-60'
+                  }`}
+                >
+                  {/* Enable / Disable Toggle */}
+                  <label className="flex items-center cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={social.enabled}
+                      onChange={e => updateSocialLink(i, 'enabled', e.target.checked)}
+                      className="rounded border-gray-700 bg-freqDarker text-freqBlue focus:ring-0 cursor-pointer"
+                    />
+                  </label>
+
+                  {/* Name */}
+                  <div className="w-1/3">
+                    <input
+                      type="text"
+                      value={social.name}
+                      onChange={e => updateSocialLink(i, 'name', e.target.value)}
+                      placeholder="Label (e.g. Instagram)"
+                      className="w-full bg-freqDarker border border-gray-800 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-freqBlue"
+                    />
+                  </div>
+
+                  {/* URL */}
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={social.url}
+                      onChange={e => updateSocialLink(i, 'url', e.target.value)}
+                      placeholder="https://..."
+                      className="w-full bg-freqDarker border border-gray-800 rounded px-2.5 py-1.5 text-xs text-gray-300 focus:outline-none focus:border-freqBlue font-mono"
+                    />
+                  </div>
+
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => removeSocialLink(i)}
+                    className="text-gray-600 hover:text-red-400 p-1 transition-colors"
+                    title="Remove social link"
+                  >
+                    <Trash2 size={15} />
+                  </button>
                 </div>
               ))}
             </div>

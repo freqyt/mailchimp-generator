@@ -89,6 +89,29 @@ export function generateMailchimpHtml(data: EmailData): string {
             </td>
           </tr>
 
+          <!-- SOCIAL LINKS -->
+          ${(() => {
+            const activeSocials = (data.socialLinks || []).filter(s => s.enabled && s.url);
+            if (activeSocials.length === 0) return '';
+            return `
+            <tr>
+              <td align="center" style="padding: 10px 20px 25px 20px;">
+                <table border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    ${activeSocials.map(s => `
+                      <td align="center" style="padding: 4px 6px;">
+                        <a href="${s.url}" target="_blank" style="background-color: #141414; border: 1px solid #252525; border-radius: 18px; color: #cccccc; padding: 7px 14px; font-size: 12px; font-family: Helvetica, Arial, sans-serif; text-decoration: none; display: inline-block; font-weight: 500;">
+                          ${s.name}
+                        </a>
+                      </td>
+                    `).join('')}
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            `;
+          })()}
+
           <!-- FOOTER -->
           <tr>
             <td align="center" style="padding: 30px; border-top: 1px solid #1c1c1c; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
