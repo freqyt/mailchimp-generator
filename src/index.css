@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --color-freqBlue: #0078D4;
+  --color-freqDark: #0a0a0a;
+  --color-freqDarker: #050505;
+  --color-freqGray: #1c1c1c;
+}
+
+body {
+  background-color: var(--color-freqDarker);
+  color: white;
+}
+
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050505; 
+}
+::-webkit-scrollbar-thumb {
+  background: #333; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}

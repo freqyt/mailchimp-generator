@@ -1,0 +1,110 @@
+import type { EmailData, Product } from './types';
+
+export function generateMailchimpHtml(data: EmailData): string {
+  const generateProductRows = (products: Product[]) => {
+    return products.map((product, index) => `
+      <tr>
+        <td align="center" style="padding: ${index === 0 ? '0' : '20px'} 0 20px 0;">
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="${data.transparentCards ? '' : 'background-color: #1c1c1c; '}border-radius: 8px;">
+            <tr>
+              <td align="center" style="padding: 20px;">
+                ${product.useIcon ? `
+                  <table border="0" cellpadding="0" cellspacing="0" style="background-color: #2a2a2a; border-radius: 50%; width: 64px; height: 64px; margin: 0 auto;">
+                    <tr>
+                      <td align="center" valign="middle" height="64">
+                        <img src="https://api.iconify.design/fa6-solid/${product.iconName || 'plug'}.svg?color=white&width=128&height=128" alt="Icon" width="32" height="32" style="display: block; width: 32px; height: 32px; margin: 0 auto;" />
+                      </td>
+                    </tr>
+                  </table>
+                ` : product.imageUrl ? `
+                  <img src="${product.imageUrl}" alt="${product.name}" width="100%" style="max-width: 500px; border-radius: 4px; display: block;" />
+                ` : ''}
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding: 0 20px;">
+                <h3 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 22px; font-weight: bold; margin: 0 0 10px 0;">${product.name}</h3>
+                <p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0 0 15px 0;">${product.description}</p>
+                ${product.price ? `<p style="color: #0078D4; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: bold; margin: 0 0 20px 0;">${product.price}</p>` : ''}
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding: 0 20px 20px 20px;">
+                <table border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="center" bgcolor="#0078D4" style="border-radius: 4px;">
+                      <a href="${product.link}" target="_blank" style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 12px 24px; border: 1px solid #0078D4; display: inline-block; font-weight: bold;">${product.buttonText || 'Check It Out'}</a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    `).join('');
+  };
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${data.title}</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #050505; }
+    table, td, tr { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+    a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
+  </style>
+</head>
+<body style="background-color: #050505; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #050505;">
+    <tr>
+      <td align="center" style="padding: 40px 10px;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #0a0a0a; border-radius: 8px;">
+          <!-- HEADER IMAGE -->
+          ${data.headerImageUrl ? `
+          <tr>
+            <td align="center">
+              <img src="${data.headerImageUrl}" alt="Header" width="100%" style="display: block; border-top-left-radius: 8px; border-top-right-radius: 8px;" />
+            </td>
+          </tr>
+          ` : ''}
+
+          <!-- TITLE & INTRO -->
+          <tr>
+            <td align="center" style="padding: 40px 30px ${data.intro ? '20px' : '0'} 30px;">
+              <h1 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 28px; font-weight: bold; margin: 0 ${data.intro ? '0 20px 0' : '0'};">${data.title}</h1>
+              ${data.intro ? `<p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0;">${data.intro}</p>` : ''}
+            </td>
+          </tr>
+
+          <!-- PRODUCTS -->
+          <tr>
+            <td align="center" style="padding: 0 30px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                ${generateProductRows(data.products)}
+              </table>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td align="center" style="padding: 30px; border-top: 1px solid #1c1c1c; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
+              <span style="color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
+                ${data.footerText ? `${data.footerText}<br><br>` : ''}
+                *|LIST:ADDRESS|*<br><br>
+                <!-- MAILCHIMP REQUIRED TAGS -->
+                <a href="*|UNSUB|*" style="color: #0078D4; text-decoration: underline;">Unsubscribe</a> | 
+                <a href="*|UPDATE_PROFILE|*" style="color: #0078D4; text-decoration: underline;">Update Preferences</a>
+              </span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
