@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud } from 'lucide-react';
-import type { EmailData, Product, SocialLink } from './types';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud, Upload, Image as ImageIcon } from 'lucide-react';
+import type { EmailData, Product, SocialLink, UploadedImage } from './types';
 import { generateMailchimpHtml } from './generateMailchimpHtml';
 import Login from './Login';
 
@@ -14,7 +14,8 @@ const DEFAULT_SOCIALS: SocialLink[] = [
 const DEFAULT_DATA: EmailData = {
   title: 'New Plugins Added to the Vault!',
   intro: 'Check out the latest additions to freq.yt. We have just dropped some fresh plugins and Kontakt libraries that will take your production to the next level.',
-  headerImageUrl: 'https://music-store-pi.vercel.app/favicon.svg',
+  headerImageUrl: 'https://mailchimp-generator.vercel.app/logo.png',
+  headerImageSize: 64,
   products: [
     {
       id: '1',
@@ -83,6 +84,101 @@ export default function App() {
         // running locally or without backend
       });
   }, []);
+
+  const [savedImages, setSavedImages] = useState<UploadedImage[]>(() => {
+    const saved = localStorage.getItem('freq_saved_images');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return []; }
+    }
+    return [
+      { id: '1', name: 'FREQ Logo (PNG)', url: 'https://mailchimp-generator.vercel.app/logo.png', date: 'Default' }
+    ];
+  });
+
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadTarget, setUploadTarget] = useState<'header' | number>('header');
+  const [showImageLibrary, setShowImageLibrary] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('freq_saved_images', JSON.stringify(savedImages));
+  }, [savedImages]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+      const base64String = (reader.result as string).split(',')[1];
+      
+      try {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            base64: base64String,
+            contentType: file.type,
+          }),
+        });
+
+        const resData = await response.json();
+        const uploadedUrl = resData.url || (reader.result as string);
+
+        const newImage: UploadedImage = {
+          id: Date.now().toString(),
+          name: file.name,
+          url: uploadedUrl,
+          date: new Date().toLocaleDateString(),
+        };
+
+        setSavedImages(prev => [newImage, ...prev]);
+
+        if (uploadTarget === 'header') {
+          updateField('headerImageUrl', uploadedUrl);
+        } else if (typeof uploadTarget === 'number') {
+          updateProduct(uploadTarget, 'imageUrl', uploadedUrl);
+        }
+      } catch (err) {
+        const localUrl = reader.result as string;
+        const newImage: UploadedImage = {
+          id: Date.now().toString(),
+          name: file.name,
+          url: localUrl,
+          date: new Date().toLocaleDateString(),
+        };
+        setSavedImages(prev => [newImage, ...prev]);
+
+        if (uploadTarget === 'header') {
+          updateField('headerImageUrl', localUrl);
+        } else if (typeof uploadTarget === 'number') {
+          updateProduct(uploadTarget, 'imageUrl', localUrl);
+        }
+      } finally {
+        setIsUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const triggerUpload = (target: 'header' | number) => {
+    setUploadTarget(target);
+    fileInputRef.current?.click();
+  };
+
+  const selectLibraryImage = (url: string) => {
+    if (uploadTarget === 'header') {
+      updateField('headerImageUrl', url);
+    } else if (typeof uploadTarget === 'number') {
+      updateProduct(uploadTarget, 'imageUrl', url);
+    }
+    setShowImageLibrary(false);
+  };
   
   useEffect(() => {
     localStorage.setItem('freqMailchimpDraft', JSON.stringify(data));
@@ -284,14 +380,57 @@ export default function App() {
           <div className="space-y-4">
             <h2 className="text-lg font-semibold border-b border-freqGray pb-2">Global Settings</h2>
             
-            <div className="space-y-1">
-              <label className="text-sm text-gray-300">Header Image URL</label>
+            <div className="space-y-2 bg-[#101010] p-3 rounded-lg border border-gray-800">
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-medium text-gray-300">Header Image / Logo</label>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadTarget('header');
+                      setShowImageLibrary(true);
+                    }}
+                    className="flex items-center space-x-1 text-xs text-gray-400 hover:text-white bg-[#181818] border border-gray-700 px-2 py-1 rounded transition-colors"
+                  >
+                    <ImageIcon size={12} />
+                    <span>Library ({savedImages.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isUploading}
+                    onClick={() => triggerUpload('header')}
+                    className="flex items-center space-x-1 text-xs bg-freqBlue hover:bg-blue-600 text-white px-2.5 py-1 rounded transition-colors disabled:opacity-50"
+                  >
+                    <Upload size={12} />
+                    <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
+                  </button>
+                </div>
+              </div>
+
               <input 
                 type="text" 
                 value={data.headerImageUrl}
                 onChange={e => updateField('headerImageUrl', e.target.value)}
-                className="w-full bg-freqGray border border-gray-700 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                placeholder="https://... or select from library"
+                className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-xs focus:outline-none focus:border-freqBlue font-mono text-gray-300"
               />
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs text-gray-400">Display Size:</span>
+                <select
+                  value={data.headerImageSize || 64}
+                  onChange={e => updateField('headerImageSize', Number(e.target.value))}
+                  className="bg-freqDarker border border-gray-800 text-xs rounded px-2.5 py-1 text-white focus:outline-none focus:border-freqBlue"
+                >
+                  <option value={36}>Tiny (36px)</option>
+                  <option value={48}>Small (48px)</option>
+                  <option value={64}>Standard (64px - Recommended)</option>
+                  <option value={84}>Medium (84px)</option>
+                  <option value={110}>Large (110px)</option>
+                  <option value={150}>Hero Mark (150px)</option>
+                  <option value={500}>Full Width Banner (500px)</option>
+                </select>
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -417,13 +556,35 @@ export default function App() {
                           </select>
                         </div>
                       ) : (
-                        <input 
-                          type="text" 
-                          value={product.imageUrl}
-                          onChange={e => updateProduct(i, 'imageUrl', e.target.value)}
-                          placeholder="https://..."
-                          className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-                        />
+                        <div className="flex space-x-2">
+                          <input 
+                            type="text" 
+                            value={product.imageUrl}
+                            onChange={e => updateProduct(i, 'imageUrl', e.target.value)}
+                            placeholder="https://... or upload image"
+                            className="flex-1 bg-freqDarker border border-gray-800 rounded-md p-2 text-xs focus:outline-none focus:border-freqBlue font-mono text-gray-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUploadTarget(i);
+                              setShowImageLibrary(true);
+                            }}
+                            className="px-2.5 py-1 bg-[#181818] hover:bg-[#222] border border-gray-800 text-gray-300 rounded text-xs flex items-center space-x-1 transition-colors"
+                            title="Choose from saved images"
+                          >
+                            <ImageIcon size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUploading}
+                            onClick={() => triggerUpload(i)}
+                            className="px-2.5 py-1 bg-freqBlue hover:bg-blue-600 text-white rounded text-xs flex items-center space-x-1 transition-colors disabled:opacity-50"
+                            title="Upload new image"
+                          >
+                            <Upload size={12} />
+                          </button>
+                        </div>
                       )}
                     </div>
 
@@ -598,6 +759,77 @@ export default function App() {
           )}
         </div>
       </div>
+
+      {/* Hidden File Input */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileUpload} 
+        accept="image/*" 
+        className="hidden" 
+      />
+
+      {/* Image Library Modal */}
+      {showImageLibrary && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0e0e0e] border border-[#222] rounded-xl w-full max-w-lg p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
+              <div>
+                <h3 className="font-semibold text-white text-base">Image & Media Library</h3>
+                <p className="text-xs text-gray-500">Click any image to apply it to your {uploadTarget === 'header' ? 'Header Logo' : `Product #${Number(uploadTarget) + 1}`}</p>
+              </div>
+              <button 
+                onClick={() => setShowImageLibrary(false)}
+                className="text-gray-400 hover:text-white text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 max-h-80 overflow-y-auto p-1">
+              {savedImages.map(img => (
+                <div 
+                  key={img.id}
+                  onClick={() => selectLibraryImage(img.url)}
+                  className="group relative bg-[#141414] border border-gray-800 hover:border-freqBlue rounded-lg p-2 flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-[1.02]"
+                >
+                  <div className="w-16 h-16 flex items-center justify-center mb-2 overflow-hidden">
+                    <img 
+                      src={img.url} 
+                      alt={img.name} 
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                  <span className="text-[11px] text-gray-400 truncate w-full text-center group-hover:text-white">
+                    {img.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 pt-3 border-t border-gray-800 flex justify-between items-center">
+              <span className="text-xs text-gray-500">{savedImages.length} saved images</span>
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => triggerUpload(uploadTarget)}
+                  className="px-3 py-1.5 bg-freqBlue hover:bg-blue-600 text-white text-xs rounded-md transition-colors flex items-center space-x-1"
+                >
+                  <Upload size={12} />
+                  <span>Upload New</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowImageLibrary(false)}
+                  className="px-3 py-1.5 bg-[#1e1e1e] hover:bg-[#252525] text-gray-300 text-xs rounded-md transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

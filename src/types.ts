@@ -17,10 +17,18 @@ export interface SocialLink {
   enabled: boolean;
 }
 
+export interface UploadedImage {
+  id: string;
+  name: string;
+  url: string;
+  date: string;
+}
+
 export interface EmailData {
   title: string;
   intro: string;
   headerImageUrl: string;
+  headerImageSize?: number;
   products: Product[];
   footerText: string;
   transparentCards?: boolean;
