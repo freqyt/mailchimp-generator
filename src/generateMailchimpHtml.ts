@@ -160,7 +160,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
             <td align="center" style="padding: 30px; border-top: 1px solid #1c1c1c; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
               <span style="color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
                 ${data.footerText ? `${data.footerText}<br><br>` : ''}
-                ${isPreview ? 'Kronprinsensgade 6B, 1114 København K, Denmark' : '*|LIST:ADDRESS|*'}<br><br>
+                ${isPreview ? 'Freq.yt <a href="https://www.google.com/maps/search/Kronprinsensgade+6B%0D%0AK%C3%B8benhavn+K?entry=gmail&source=g" target="_blank" style="color: #0078D4; text-decoration: underline;">Kronprinsensgade 6B København K</a> 1114 Denmark' : '*|LIST:ADDRESS|*'}<br><br>
                 <!-- MAILCHIMP REQUIRED TAGS -->
                 <a href="*|UNSUB|*" style="color: #0078D4; text-decoration: underline;">Unsubscribe</a> | 
                 <a href="*|UPDATE_PROFILE|*" style="color: #0078D4; text-decoration: underline;">Update Preferences</a>
