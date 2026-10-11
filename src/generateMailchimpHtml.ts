@@ -2,32 +2,50 @@ import type { EmailData, Product } from './types';
 
 export function generateMailchimpHtml(data: EmailData, isPreview = false): string {
   const generateProductRows = (products: Product[]) => {
-    return products.map((product, index) => `
+    return products.map((product, index) => {
+      const hasIcon = product.useIcon && product.iconName && product.iconName !== 'none';
+      const hasImage = !product.useIcon && Boolean(product.imageUrl);
+      const iconPosition = product.iconPosition || data.defaultIconPosition || 'inline';
+
+      const iconImgUrl = hasIcon ? `https://api.iconify.design/fa6-solid/${product.iconName}.svg?color=${encodeURIComponent(product.iconColor || '#0078D4')}&width=128&height=128` : '';
+
+      return `
       <tr>
         <td align="center" style="padding: ${index === 0 ? '0' : '20px'} 0 ${index === products.length - 1 ? (data.transparentCards ? '6px' : '12px') : '20px'} 0;">
           <table border="0" cellpadding="0" cellspacing="0" width="100%" style="${data.transparentCards ? '' : 'background-color: #1c1c1c; '}border-radius: 8px;">
-            ${(product.useIcon && product.iconName && product.iconName !== 'none') ? `
+            ${hasImage ? `
+            <!-- PRODUCT BANNER IMAGE -->
+            <tr>
+              <td align="center" style="padding: 20px;">
+                <img src="${product.imageUrl}" alt="${product.name}" width="100%" style="max-width: 500px; border-radius: 6px; display: block;" />
+              </td>
+            </tr>
+            ` : (hasIcon && iconPosition === 'top') ? `
+            <!-- STANDALONE TOP FLOATING ICON -->
             <tr>
               <td align="center" style="padding: 20px 20px 10px 20px;">
                 <table border="0" cellpadding="0" cellspacing="0" style="${data.hideIconCircle ? '' : 'background-color: #2a2a2a; border-radius: 50%; width: 64px; height: 64px; '}margin: 0 auto;">
                   <tr>
                     <td align="center" valign="middle" height="${data.hideIconCircle ? '38' : '64'}">
-                      <img src="https://api.iconify.design/fa6-solid/${product.iconName}.svg?color=${encodeURIComponent(product.iconColor || '#0078D4')}&width=128&height=128" alt="Icon" width="${data.hideIconCircle ? '36' : '32'}" height="${data.hideIconCircle ? '36' : '32'}" style="display: block; width: ${data.hideIconCircle ? '36px' : '32px'}; height: ${data.hideIconCircle ? '36px' : '32px'}; margin: 0 auto;" />
+                      <img src="${iconImgUrl}" alt="Icon" width="${data.hideIconCircle ? '36' : '32'}" height="${data.hideIconCircle ? '36' : '32'}" style="display: block; width: ${data.hideIconCircle ? '36px' : '32px'}; height: ${data.hideIconCircle ? '36px' : '32px'}; margin: 0 auto;" />
                     </td>
                   </tr>
                 </table>
               </td>
             </tr>
-            ` : (!product.useIcon && product.imageUrl) ? `
-            <tr>
-              <td align="center" style="padding: 20px;">
-                <img src="${product.imageUrl}" alt="${product.name}" width="100%" style="max-width: 500px; border-radius: 4px; display: block;" />
-              </td>
-            </tr>
             ` : ''}
+
+            <!-- PRODUCT TITLE & DETAILS -->
             <tr>
-              <td align="center" style="padding: ${(product.useIcon && product.iconName && product.iconName !== 'none') || (!product.useIcon && product.imageUrl) ? '0 20px' : '15px 20px 0 20px'};">
-                <h3 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 22px; font-weight: bold; margin: 0 0 10px 0;">${product.name}</h3>
+              <td align="center" style="padding: ${hasImage || (hasIcon && iconPosition === 'top') ? '0 20px' : '15px 20px 0 20px'};">
+                <h3 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 22px; font-weight: bold; margin: 0 0 10px 0; line-height: 1.3;">
+                  ${hasIcon && iconPosition === 'inline' ? `
+                    <span style="display: inline-block; vertical-align: middle; margin-right: 8px; line-height: 1;">
+                      <img src="${iconImgUrl}" alt="Icon" width="22" height="22" style="display: inline-block; vertical-align: -2px; width: 22px; height: 22px;" />
+                    </span>
+                  ` : ''}
+                  <span style="vertical-align: middle;">${product.name}</span>
+                </h3>
                 <p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0 0 15px 0;">${product.description}</p>
                 ${product.price ? `
                   <p style="margin: 0 0 20px 0;">
@@ -51,7 +69,8 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
           </table>
         </td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
   };
 
   return `<!DOCTYPE html>

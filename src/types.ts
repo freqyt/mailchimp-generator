@@ -6,6 +6,7 @@ export interface Product {
   iconName?: string;
   iconColor?: string;
   imageUrl: string;
+  iconPosition?: 'top' | 'inline' | 'badge';
   originalPrice?: string;
   price: string;
   link: string;
@@ -37,5 +38,6 @@ export interface EmailData {
   footerText: string;
   transparentCards?: boolean;
   hideIconCircle?: boolean;
+  defaultIconPosition?: 'top' | 'inline' | 'badge';
   socialLinks?: SocialLink[];
 }
