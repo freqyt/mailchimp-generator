@@ -65,12 +65,12 @@ export function generateMailchimpHtml(data: EmailData): string {
 <body style="background-color: #050505; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #050505;">
     <tr>
-      <td align="center" style="padding: 40px 10px;">
+      <td align="center" style="padding: 30px 10px;">
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #0a0a0a; border-radius: 8px;">
           <!-- HEADER IMAGE -->
           ${data.headerImageUrl ? `
           <tr>
-            <td align="center" style="padding: ${(data.headerImageSize && data.headerImageSize >= 400) ? '0' : '35px 20px 0 20px'};">
+            <td align="center" style="padding: ${(data.headerImageSize && data.headerImageSize >= 400) ? '0' : '22px 20px 0 20px'};">
               <img 
                 src="${data.headerImageUrl}" 
                 alt="Logo" 
@@ -83,7 +83,7 @@ export function generateMailchimpHtml(data: EmailData): string {
 
           <!-- TITLE & INTRO -->
           <tr>
-            <td align="center" style="padding: ${data.headerImageUrl ? '25px' : '40px'} 30px ${data.intro ? '20px' : '0'} 30px;">
+            <td align="center" style="padding: ${data.headerImageUrl ? '15px' : '30px'} 30px ${data.intro ? '20px' : '0'} 30px;">
               <h1 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 28px; font-weight: bold; margin: 0 ${data.intro ? '0 20px 0' : '0'};">${data.title}</h1>
               ${data.intro ? `<p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0;">${data.intro}</p>` : ''}
             </td>
