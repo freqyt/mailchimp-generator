@@ -557,23 +557,54 @@ export default function App() {
                       </div>
                       
                       {(product.useIcon ?? true) ? (
-                        <div className="flex space-x-2">
-                          <select 
-                            value={product.iconName || 'none'}
-                            onChange={e => updateProduct(i, 'iconName', e.target.value)}
-                            className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-                          >
-                            <option value="none">(None)</option>
-                            <option value="plug">Plug</option>
-                            <option value="fire">Flame (Fire)</option>
-                            <option value="gem">Diamond (Gem)</option>
-                            <option value="bolt">Lightning Bolt</option>
-                            <option value="star">Star</option>
-                            <option value="music">Music Note</option>
-                            <option value="compact-disc">CD / Disc</option>
-                            <option value="wave-square">Wave (Synth)</option>
-                            <option value="sliders">Sliders (Mixer)</option>
-                          </select>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1">
+                            <select 
+                              value={product.iconName || 'none'}
+                              onChange={e => updateProduct(i, 'iconName', e.target.value)}
+                              className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                            >
+                              <option value="none">(None)</option>
+                              <option value="gem">Diamond (Gem)</option>
+                              <option value="fire">Flame (Fire)</option>
+                              <option value="plug">Plug</option>
+                              <option value="bolt">Lightning Bolt</option>
+                              <option value="star">Star</option>
+                              <option value="music">Music Note</option>
+                              <option value="compact-disc">CD / Disc</option>
+                              <option value="wave-square">Wave (Synth)</option>
+                              <option value="sliders">Sliders (Mixer)</option>
+                            </select>
+                          </div>
+
+                          {product.iconName && product.iconName !== 'none' && (
+                            <div className="flex items-center space-x-1.5 bg-freqDarker border border-gray-800 rounded-md px-2 py-1.5 shrink-0" title="Choose Icon Color">
+                              <input 
+                                type="color"
+                                value={product.iconColor || '#0078D4'}
+                                onChange={e => updateProduct(i, 'iconColor', e.target.value)}
+                                className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                              />
+                              <div className="flex space-x-1 pl-1">
+                                {[
+                                  { color: '#0078D4', title: 'FREQ Blue' },
+                                  { color: '#ffffff', title: 'White' },
+                                  { color: '#ff6b22', title: 'Flame Orange' },
+                                  { color: '#f59e0b', title: 'Gold' },
+                                  { color: '#ef4444', title: 'Red' }
+                                ].map(({ color, title }) => (
+                                  <button
+                                    key={color}
+                                    type="button"
+                                    title={title}
+                                    onClick={() => updateProduct(i, 'iconColor', color)}
+                                    style={{ backgroundColor: color }}
+                                    className={`w-3.5 h-3.5 rounded-full border ${product.iconColor === color ? 'border-white ring-1 ring-white' : 'border-gray-800'} hover:scale-125 transition-transform`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="flex space-x-2">

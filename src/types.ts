@@ -4,6 +4,7 @@ export interface Product {
   description: string;
   useIcon?: boolean;
   iconName?: string;
+  iconColor?: string;
   imageUrl: string;
   price: string;
   link: string;
