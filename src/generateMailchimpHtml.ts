@@ -103,13 +103,25 @@ export function generateMailchimpHtml(data: EmailData): string {
               <td align="center" style="padding: 10px 20px 25px 20px;">
                 <table border="0" cellpadding="0" cellspacing="0">
                   <tr>
-                    ${activeSocials.map(s => `
-                      <td align="center" style="padding: 4px 6px;">
-                        <a href="${s.url}" target="_blank" style="background-color: #141414; border: 1px solid #252525; border-radius: 18px; color: #cccccc; padding: 7px 14px; font-size: 12px; font-family: Helvetica, Arial, sans-serif; text-decoration: none; display: inline-block; font-weight: 500;">
-                          ${s.name}
-                        </a>
-                      </td>
-                    `).join('')}
+                    ${activeSocials.map(s => {
+                      const isIg = s.name.toLowerCase().includes('instagram') || s.url.toLowerCase().includes('instagram') || s.name.toLowerCase().includes('ig');
+                      if (isIg) {
+                        return `
+                          <td align="center" style="padding: 4px 6px;">
+                            <a href="${s.url}" target="_blank" style="background-color: #171115; border: 1px solid #d62976; border-radius: 18px; color: #ffffff; padding: 7px 15px; font-size: 12px; font-family: Helvetica, Arial, sans-serif; text-decoration: none; display: inline-block; font-weight: bold; letter-spacing: 0.2px;">
+                              ${s.name}
+                            </a>
+                          </td>
+                        `;
+                      }
+                      return `
+                        <td align="center" style="padding: 4px 6px;">
+                          <a href="${s.url}" target="_blank" style="background-color: #141414; border: 1px solid #252525; border-radius: 18px; color: #cccccc; padding: 7px 14px; font-size: 12px; font-family: Helvetica, Arial, sans-serif; text-decoration: none; display: inline-block; font-weight: 500;">
+                            ${s.name}
+                          </a>
+                        </td>
+                      `;
+                    }).join('')}
                   </tr>
                 </table>
               </td>
