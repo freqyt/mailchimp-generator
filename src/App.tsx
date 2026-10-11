@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud, Upload, Image as ImageIcon, Smartphone, Monitor, Mail } from 'lucide-react';
+import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud, Upload, Image as ImageIcon, Smartphone, Monitor, Mail, Package, Share2 } from 'lucide-react';
 import type { EmailData, Product, SocialLink, UploadedImage } from './types';
 import { generateMailchimpHtml } from './generateMailchimpHtml';
 import Login from './Login';
@@ -49,6 +49,7 @@ export default function App() {
 
   const [isCloudSynced, setIsCloudSynced] = useState(false);
   const [deviceView, setDeviceView] = useState<'desktop' | 'mobile'>('desktop');
+  const [activeTab, setActiveTab] = useState<'campaign' | 'products' | 'footer'>('campaign');
 
   const [data, setData] = useState<EmailData>(() => {
     const saved = localStorage.getItem('freqMailchimpDraft');
@@ -390,447 +391,510 @@ export default function App() {
             </div>
           )}
 
-          {/* INBOX SIMULATOR & SUBJECT SETTINGS */}
-          <div className="space-y-4 bg-[#0d0d0d] p-4 rounded-xl border border-gray-800">
-            <div className="flex items-center justify-between border-b border-gray-800 pb-2">
-              <div className="flex items-center space-x-2">
-                <Mail size={16} className="text-freqBlue" />
-                <h2 className="text-base font-semibold text-white">Inbox Simulator</h2>
-              </div>
-              <span className="text-[11px] text-gray-500">Subject & Preheader</span>
-            </div>
-
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <label className="text-gray-300 font-medium">Subject Line</label>
-                  <span className={`text-[11px] ${(data.subjectLine || '').length > 40 ? 'text-amber-400' : 'text-gray-500'}`}>
-                    {(data.subjectLine || '').length} / 40 chars {(data.subjectLine || '').length > 40 && '(may cut off on mobile)'}
-                  </span>
-                </div>
-                <input 
-                  type="text" 
-                  value={data.subjectLine || ''}
-                  onChange={e => updateField('subjectLine', e.target.value)}
-                  placeholder="e.g. FLASH SALE (24 hours only) ⏰"
-                  className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <label className="text-gray-300 font-medium">Preview Text (Preheader)</label>
-                  <span className="text-[11px] text-gray-500">
-                    {(data.preheader || '').length} chars
-                  </span>
-                </div>
-                <input 
-                  type="text" 
-                  value={data.preheader || ''}
-                  onChange={e => updateField('preheader', e.target.value)}
-                  placeholder="e.g. Pick any 2 plugins from the vault for $50..."
-                  className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-                />
-                <p className="text-[11px] text-gray-500">Hidden in the email body, but displays as the preview teaser in Gmail & Apple Mail.</p>
-              </div>
-
-              {/* LIVE INBOX SIMULATION MOCKUP */}
-              <div className="bg-[#141414] border border-[#222] rounded-lg p-3 space-y-1 mt-2">
-                <div className="flex items-center justify-between text-[11px] text-gray-500 mb-0.5">
-                  <span className="font-semibold text-gray-300 flex items-center">
-                    <span className="w-1.5 h-1.5 rounded-full bg-freqBlue mr-1.5"></span>
-                    FREQ
-                  </span>
-                  <span>Just now</span>
-                </div>
-                <div className="text-xs truncate">
-                  <span className="font-bold text-white mr-1.5">
-                    {data.subjectLine || 'Untitled Email'}
-                  </span>
-                  <span className="text-gray-400">
-                    — {data.preheader || 'No preview text set (email body will leak here)'}
-                  </span>
-                </div>
-              </div>
-            </div>
+          {/* SEGMENTED TAB NAVIGATION */}
+          <div className="flex bg-[#111] p-1 rounded-xl border border-gray-800">
+            <button
+              type="button"
+              onClick={() => setActiveTab('campaign')}
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'campaign'
+                  ? 'bg-freqBlue text-white shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
+              }`}
+            >
+              <Mail size={14} />
+              <span>Campaign</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('products')}
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'products'
+                  ? 'bg-freqBlue text-white shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
+              }`}
+            >
+              <Package size={14} />
+              <span>Products</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${activeTab === 'products' ? 'bg-white/20 text-white' : 'bg-gray-800 text-gray-300'}`}>
+                {data.products.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('footer')}
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'footer'
+                  ? 'bg-freqBlue text-white shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
+              }`}
+            >
+              <Share2 size={14} />
+              <span>Footer & Socials</span>
+            </button>
           </div>
 
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold border-b border-freqGray pb-2">Global Settings</h2>
-            
-            <div className="space-y-2 bg-[#101010] p-3 rounded-lg border border-gray-800">
-              <div className="flex justify-between items-center">
-                <label className="text-xs font-medium text-gray-300">Header Image / Logo</label>
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUploadTarget('header');
-                      setShowImageLibrary(true);
-                    }}
-                    className="flex items-center space-x-1 text-xs text-gray-400 hover:text-white bg-[#181818] border border-gray-700 px-2 py-1 rounded transition-colors"
-                  >
-                    <ImageIcon size={12} />
-                    <span>Library ({savedImages.length})</span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isUploading}
-                    onClick={() => triggerUpload('header')}
-                    className="flex items-center space-x-1 text-xs bg-freqBlue hover:bg-blue-600 text-white px-2.5 py-1 rounded transition-colors disabled:opacity-50"
-                  >
-                    <Upload size={12} />
-                    <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
-                  </button>
-                </div>
-              </div>
-
-              <input 
-                type="text" 
-                value={data.headerImageUrl}
-                onChange={e => updateField('headerImageUrl', e.target.value)}
-                placeholder="https://... or select from library"
-                className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-xs focus:outline-none focus:border-freqBlue font-mono text-gray-300"
-              />
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-gray-400">Display Size:</span>
-                <select
-                  value={data.headerImageSize || 64}
-                  onChange={e => updateField('headerImageSize', Number(e.target.value))}
-                  className="bg-freqDarker border border-gray-800 text-xs rounded px-2.5 py-1 text-white focus:outline-none focus:border-freqBlue"
-                >
-                  <option value={36}>Tiny (36px)</option>
-                  <option value={48}>Small (48px)</option>
-                  <option value={64}>Standard (64px - Recommended)</option>
-                  <option value={84}>Medium (84px)</option>
-                  <option value={110}>Large (110px)</option>
-                  <option value={150}>Hero Mark (150px)</option>
-                  <option value={500}>Full Width Banner (500px)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm text-gray-300">Newsletter Title</label>
-              <input 
-                type="text" 
-                value={data.title}
-                onChange={e => updateField('title', e.target.value)}
-                className="w-full bg-freqGray border border-gray-700 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm text-gray-300">Introduction Text</label>
-              <textarea 
-                rows={3}
-                value={data.intro}
-                onChange={e => updateField('intro', e.target.value)}
-                className="w-full bg-freqGray border border-gray-700 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-              />
-            </div>
-
-            <div className="flex items-center space-x-2 pt-2">
-              <input 
-                type="checkbox" 
-                id="transparentCards"
-                checked={!!data.transparentCards}
-                onChange={e => updateField('transparentCards', e.target.checked)}
-                className="rounded border-gray-700 bg-freqGray text-freqBlue focus:ring-freqBlue"
-              />
-              <label htmlFor="transparentCards" className="text-sm text-gray-300">
-                Transparent Product Cards (remove grey background box)
-              </label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input 
-                type="checkbox" 
-                id="hideIconCircle"
-                checked={data.hideIconCircle ?? true}
-                onChange={e => updateField('hideIconCircle', e.target.checked)}
-                className="rounded border-gray-700 bg-freqGray text-freqBlue focus:ring-freqBlue"
-              />
-              <label htmlFor="hideIconCircle" className="text-sm text-gray-300">
-                Remove grey circle behind icons (clean floating icon)
-              </label>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-end border-b border-freqGray pb-2">
-              <h2 className="text-lg font-semibold">Products</h2>
-              <button 
-                onClick={addProduct}
-                className="flex items-center space-x-1 text-sm bg-freqBlue hover:bg-blue-600 text-white px-3 py-1.5 rounded-md transition-colors"
-              >
-                <Plus size={16} />
-                <span>Add Product</span>
-              </button>
-            </div>
-
+          {/* TAB 1: CAMPAIGN (Inbox Simulator & Header/Intro Settings) */}
+          {activeTab === 'campaign' && (
             <div className="space-y-6">
-              {data.products.map((product, i) => (
-                <div key={product.id} className="bg-[#111] border border-freqGray rounded-lg p-4 relative">
-                  <div className="absolute top-4 right-4 flex space-x-2">
-                    <button 
-                      onClick={() => removeProduct(i)}
-                      className="text-gray-500 hover:text-red-500 transition-colors"
-                      title="Remove product"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+              {/* INBOX SIMULATOR & SUBJECT SETTINGS */}
+              <div className="space-y-4 bg-[#0d0d0d] p-4 rounded-xl border border-gray-800">
+                <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                  <div className="flex items-center space-x-2">
+                    <Mail size={16} className="text-freqBlue" />
+                    <h2 className="text-base font-semibold text-white">Inbox Simulator</h2>
                   </div>
-                  
-                  <div className="mb-4 text-sm font-medium text-gray-400">Product #{i + 1}</div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1 col-span-2">
-                      <label className="text-xs text-gray-400">Product Name</label>
-                      <input 
-                        type="text" 
-                        value={product.name}
-                        onChange={e => updateProduct(i, 'name', e.target.value)}
-                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-                      />
+                  <span className="text-[11px] text-gray-500">Subject & Preheader</span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <label className="text-gray-300 font-medium">Subject Line</label>
+                      <span className={`text-[11px] ${(data.subjectLine || '').length > 40 ? 'text-amber-400' : 'text-gray-500'}`}>
+                        {(data.subjectLine || '').length} / 40 chars {(data.subjectLine || '').length > 40 && '(may cut off on mobile)'}
+                      </span>
+                    </div>
+                    <input 
+                      type="text" 
+                      value={data.subjectLine || ''}
+                      onChange={e => updateField('subjectLine', e.target.value)}
+                      placeholder="e.g. FLASH SALE (24 hours only) ⏰"
+                      className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <label className="text-gray-300 font-medium">Preview Text (Preheader)</label>
+                      <span className="text-[11px] text-gray-500">
+                        {(data.preheader || '').length} chars
+                      </span>
+                    </div>
+                    <input 
+                      type="text" 
+                      value={data.preheader || ''}
+                      onChange={e => updateField('preheader', e.target.value)}
+                      placeholder="e.g. Pick any 2 plugins from the vault for $50..."
+                      className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                    />
+                    <p className="text-[11px] text-gray-500">Hidden in the email body, but displays as the preview teaser in Gmail & Apple Mail.</p>
+                  </div>
+
+                  {/* LIVE INBOX SIMULATION MOCKUP */}
+                  <div className="bg-[#141414] border border-[#222] rounded-lg p-3 space-y-1 mt-2">
+                    <div className="flex items-center justify-between text-[11px] text-gray-500 mb-0.5">
+                      <span className="font-semibold text-gray-300 flex items-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-freqBlue mr-1.5"></span>
+                        FREQ
+                      </span>
+                      <span>Just now</span>
+                    </div>
+                    <div className="text-xs truncate">
+                      <span className="font-bold text-white mr-1.5">
+                        {data.subjectLine || 'Untitled Email'}
+                      </span>
+                      <span className="text-gray-400">
+                        — {data.preheader || 'No preview text set (email body will leak here)'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* HEADER & EMAIL INTRO */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold border-b border-freqGray pb-2">Header & Content</h2>
+                
+                <div className="space-y-2 bg-[#101010] p-3 rounded-lg border border-gray-800">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-medium text-gray-300">Header Image / Logo</label>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUploadTarget('header');
+                          setShowImageLibrary(true);
+                        }}
+                        className="flex items-center space-x-1 text-xs text-gray-400 hover:text-white bg-[#181818] border border-gray-700 px-2 py-1 rounded transition-colors"
+                      >
+                        <ImageIcon size={12} />
+                        <span>Library ({savedImages.length})</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isUploading}
+                        onClick={() => triggerUpload('header')}
+                        className="flex items-center space-x-1 text-xs bg-freqBlue hover:bg-blue-600 text-white px-2.5 py-1 rounded transition-colors disabled:opacity-50"
+                      >
+                        <Upload size={12} />
+                        <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <input 
+                    type="text" 
+                    value={data.headerImageUrl}
+                    onChange={e => updateField('headerImageUrl', e.target.value)}
+                    placeholder="https://... or select from library"
+                    className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-xs focus:outline-none focus:border-freqBlue font-mono text-gray-300"
+                  />
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs text-gray-400">Display Size:</span>
+                    <select
+                      value={data.headerImageSize || 64}
+                      onChange={e => updateField('headerImageSize', Number(e.target.value))}
+                      className="bg-freqDarker border border-gray-800 text-xs rounded px-2.5 py-1 text-white focus:outline-none focus:border-freqBlue"
+                    >
+                      <option value={36}>Tiny (36px)</option>
+                      <option value={48}>Small (48px)</option>
+                      <option value={64}>Standard (64px - Recommended)</option>
+                      <option value={84}>Medium (84px)</option>
+                      <option value={110}>Large (110px)</option>
+                      <option value={150}>Hero Mark (150px)</option>
+                      <option value={500}>Full Width Banner (500px)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm text-gray-300">Newsletter Title</label>
+                  <input 
+                    type="text" 
+                    value={data.title}
+                    onChange={e => updateField('title', e.target.value)}
+                    className="w-full bg-freqGray border border-gray-700 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm text-gray-300">Introduction Text</label>
+                  <textarea 
+                    rows={3}
+                    value={data.intro}
+                    onChange={e => updateField('intro', e.target.value)}
+                    className="w-full bg-freqGray border border-gray-700 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                  />
+                </div>
+
+                <div className="pt-2 space-y-2 border-t border-gray-800">
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      id="transparentCards"
+                      checked={!!data.transparentCards}
+                      onChange={e => updateField('transparentCards', e.target.checked)}
+                      className="rounded border-gray-700 bg-freqGray text-freqBlue focus:ring-freqBlue"
+                    />
+                    <label htmlFor="transparentCards" className="text-sm text-gray-300">
+                      Transparent Product Cards (remove grey background box)
+                    </label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      id="hideIconCircle"
+                      checked={data.hideIconCircle ?? true}
+                      onChange={e => updateField('hideIconCircle', e.target.checked)}
+                      className="rounded border-gray-700 bg-freqGray text-freqBlue focus:ring-freqBlue"
+                    />
+                    <label htmlFor="hideIconCircle" className="text-sm text-gray-300">
+                      Remove grey circle behind icons (clean floating icon)
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: PRODUCTS */}
+          {activeTab === 'products' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b border-freqGray pb-2">
+                <div>
+                  <h2 className="text-lg font-semibold">Products ({data.products.length})</h2>
+                  <p className="text-xs text-gray-400">Add, configure, and customize items in this campaign.</p>
+                </div>
+                <button 
+                  onClick={addProduct}
+                  className="flex items-center space-x-1 text-sm bg-freqBlue hover:bg-blue-600 text-white px-3 py-1.5 rounded-md transition-colors"
+                >
+                  <Plus size={16} />
+                  <span>Add Product</span>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {data.products.map((product, i) => (
+                  <div key={product.id} className="bg-[#111] border border-freqGray rounded-lg p-4 relative">
+                    <div className="absolute top-4 right-4 flex space-x-2">
+                      <button 
+                        onClick={() => removeProduct(i)}
+                        className="text-gray-500 hover:text-red-500 transition-colors"
+                        title="Remove product"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                     
-                    <div className="space-y-1 col-span-2 sm:col-span-1">
-                      <label className="text-xs text-gray-400">Original Price (Strikethrough)</label>
-                      <input 
-                        type="text" 
-                        value={product.originalPrice || ''}
-                        onChange={e => updateProduct(i, 'originalPrice', e.target.value)}
-                        placeholder="e.g. $100"
-                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue text-gray-400"
-                      />
-                    </div>
-
-                    <div className="space-y-1 col-span-2 sm:col-span-1">
-                      <label className="text-xs text-gray-400">Sale Price (Optional)</label>
-                      <input 
-                        type="text" 
-                        value={product.price}
-                        onChange={e => updateProduct(i, 'price', e.target.value)}
-                        placeholder="e.g. Only $50"
-                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue text-freqBlue font-bold"
-                      />
-                    </div>
-
-                    <div className="space-y-1 col-span-2">
-                      <label className="text-xs text-gray-400">Description</label>
-                      <textarea 
-                        rows={2}
-                        value={product.description}
-                        onChange={e => updateProduct(i, 'description', e.target.value)}
-                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-                      />
-                    </div>
-
-                    <div className="space-y-1 col-span-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <label className="text-xs text-gray-400">Visual Media</label>
-                        <button 
-                          onClick={() => updateProduct(i, 'useIcon', !(product.useIcon ?? true))}
-                          className="text-xs text-freqBlue hover:text-blue-400"
-                        >
-                          {(product.useIcon ?? true) ? 'Switch to Image URL' : 'Switch to FontAwesome Icon'}
-                        </button>
+                    <div className="mb-4 text-sm font-medium text-gray-400">Product #{i + 1}</div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1 col-span-2">
+                        <label className="text-xs text-gray-400">Product Name</label>
+                        <input 
+                          type="text" 
+                          value={product.name}
+                          onChange={e => updateProduct(i, 'name', e.target.value)}
+                          className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                        />
                       </div>
                       
-                      {(product.useIcon ?? true) ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="flex-1">
-                            <select 
-                              value={product.iconName || 'none'}
-                              onChange={e => updateProduct(i, 'iconName', e.target.value)}
-                              className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-                            >
-                              <option value="none">(None)</option>
-                              <option value="gem">Diamond (Gem)</option>
-                              <option value="fire">Flame (Fire)</option>
-                              <option value="plug">Plug</option>
-                              <option value="bolt">Lightning Bolt</option>
-                              <option value="star">Star</option>
-                              <option value="music">Music Note</option>
-                              <option value="compact-disc">CD / Disc</option>
-                              <option value="wave-square">Wave (Synth)</option>
-                              <option value="sliders">Sliders (Mixer)</option>
-                            </select>
-                          </div>
+                      <div className="space-y-1 col-span-2 sm:col-span-1">
+                        <label className="text-xs text-gray-400">Original Price (Strikethrough)</label>
+                        <input 
+                          type="text" 
+                          value={product.originalPrice || ''}
+                          onChange={e => updateProduct(i, 'originalPrice', e.target.value)}
+                          placeholder="e.g. $100"
+                          className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue text-gray-400"
+                        />
+                      </div>
 
-                          {product.iconName && product.iconName !== 'none' && (
-                            <div className="flex items-center space-x-1.5 bg-freqDarker border border-gray-800 rounded-md px-2 py-1.5 shrink-0" title="Choose Icon Color">
-                              <input 
-                                type="color"
-                                value={product.iconColor || '#0078D4'}
-                                onChange={e => updateProduct(i, 'iconColor', e.target.value)}
-                                className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
-                              />
-                              <div className="flex space-x-1 pl-1">
-                                {[
-                                  { color: '#0078D4', title: 'FREQ Blue' },
-                                  { color: '#ffffff', title: 'White' },
-                                  { color: '#ff6b22', title: 'Flame Orange' },
-                                  { color: '#f59e0b', title: 'Gold' },
-                                  { color: '#ef4444', title: 'Red' }
-                                ].map(({ color, title }) => (
-                                  <button
-                                    key={color}
-                                    type="button"
-                                    title={title}
-                                    onClick={() => updateProduct(i, 'iconColor', color)}
-                                    style={{ backgroundColor: color }}
-                                    className={`w-3.5 h-3.5 rounded-full border ${product.iconColor === color ? 'border-white ring-1 ring-white' : 'border-gray-800'} hover:scale-125 transition-transform`}
-                                  />
-                                ))}
-                              </div>
+                      <div className="space-y-1 col-span-2 sm:col-span-1">
+                        <label className="text-xs text-gray-400">Sale Price (Optional)</label>
+                        <input 
+                          type="text" 
+                          value={product.price}
+                          onChange={e => updateProduct(i, 'price', e.target.value)}
+                          placeholder="e.g. Only $50"
+                          className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue text-freqBlue font-bold"
+                        />
+                      </div>
+
+                      <div className="space-y-1 col-span-2">
+                        <label className="text-xs text-gray-400">Description</label>
+                        <textarea 
+                          rows={2}
+                          value={product.description}
+                          onChange={e => updateProduct(i, 'description', e.target.value)}
+                          className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                        />
+                      </div>
+
+                      <div className="space-y-1 col-span-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="text-xs text-gray-400">Visual Media</label>
+                          <button 
+                            onClick={() => updateProduct(i, 'useIcon', !(product.useIcon ?? true))}
+                            className="text-xs text-freqBlue hover:text-blue-400"
+                          >
+                            {(product.useIcon ?? true) ? 'Switch to Image URL' : 'Switch to FontAwesome Icon'}
+                          </button>
+                        </div>
+                        
+                        {(product.useIcon ?? true) ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="flex-1">
+                              <select 
+                                value={product.iconName || 'none'}
+                                onChange={e => updateProduct(i, 'iconName', e.target.value)}
+                                className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                              >
+                                <option value="none">(None)</option>
+                                <option value="gem">Diamond (Gem)</option>
+                                <option value="fire">Flame (Fire)</option>
+                                <option value="plug">Plug</option>
+                                <option value="bolt">Lightning Bolt</option>
+                                <option value="star">Star</option>
+                                <option value="music">Music Note</option>
+                                <option value="compact-disc">CD / Disc</option>
+                                <option value="wave-square">Wave (Synth)</option>
+                                <option value="sliders">Sliders (Mixer)</option>
+                              </select>
                             </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="flex space-x-2">
-                          <input 
-                            type="text" 
-                            value={product.imageUrl}
-                            onChange={e => updateProduct(i, 'imageUrl', e.target.value)}
-                            placeholder="https://... or upload image"
-                            className="flex-1 bg-freqDarker border border-gray-800 rounded-md p-2 text-xs focus:outline-none focus:border-freqBlue font-mono text-gray-300"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setUploadTarget(i);
-                              setShowImageLibrary(true);
-                            }}
-                            className="px-2.5 py-1 bg-[#181818] hover:bg-[#222] border border-gray-800 text-gray-300 rounded text-xs flex items-center space-x-1 transition-colors"
-                            title="Choose from saved images"
-                          >
-                            <ImageIcon size={12} />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isUploading}
-                            onClick={() => triggerUpload(i)}
-                            className="px-2.5 py-1 bg-freqBlue hover:bg-blue-600 text-white rounded text-xs flex items-center space-x-1 transition-colors disabled:opacity-50"
-                            title="Upload new image"
-                          >
-                            <Upload size={12} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
 
-                    <div className="space-y-1 col-span-2 sm:col-span-1">
-                      <label className="text-xs text-gray-400">Link URL</label>
-                      <input 
-                        type="text" 
-                        value={product.link}
-                        onChange={e => updateProduct(i, 'link', e.target.value)}
-                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-                      />
-                    </div>
+                            {product.iconName && product.iconName !== 'none' && (
+                              <div className="flex items-center space-x-1.5 bg-freqDarker border border-gray-800 rounded-md px-2 py-1.5 shrink-0" title="Choose Icon Color">
+                                <input 
+                                  type="color"
+                                  value={product.iconColor || '#0078D4'}
+                                  onChange={e => updateProduct(i, 'iconColor', e.target.value)}
+                                  className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                                />
+                                <div className="flex space-x-1 pl-1">
+                                  {[
+                                    { color: '#0078D4', title: 'FREQ Blue' },
+                                    { color: '#ffffff', title: 'White' },
+                                    { color: '#ff6b22', title: 'Flame Orange' },
+                                    { color: '#f59e0b', title: 'Gold' },
+                                    { color: '#ef4444', title: 'Red' }
+                                  ].map(({ color, title }) => (
+                                    <button
+                                      key={color}
+                                      type="button"
+                                      title={title}
+                                      onClick={() => updateProduct(i, 'iconColor', color)}
+                                      style={{ backgroundColor: color }}
+                                      className={`w-3.5 h-3.5 rounded-full border ${product.iconColor === color ? 'border-white ring-1 ring-white' : 'border-gray-800'} hover:scale-125 transition-transform`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex space-x-2">
+                            <input 
+                              type="text" 
+                              value={product.imageUrl}
+                              onChange={e => updateProduct(i, 'imageUrl', e.target.value)}
+                              placeholder="https://... or upload image"
+                              className="flex-1 bg-freqDarker border border-gray-800 rounded-md p-2 text-xs focus:outline-none focus:border-freqBlue font-mono text-gray-300"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setUploadTarget(i);
+                                setShowImageLibrary(true);
+                              }}
+                              className="px-2.5 py-1 bg-[#181818] hover:bg-[#222] border border-gray-800 text-gray-300 rounded text-xs flex items-center space-x-1 transition-colors"
+                              title="Choose from saved images"
+                            >
+                              <ImageIcon size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isUploading}
+                              onClick={() => triggerUpload(i)}
+                              className="px-2.5 py-1 bg-freqBlue hover:bg-blue-600 text-white rounded text-xs flex items-center space-x-1 transition-colors disabled:opacity-50"
+                              title="Upload new image"
+                            >
+                              <Upload size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
-                    <div className="space-y-1 col-span-2 sm:col-span-1">
-                      <label className="text-xs text-gray-400">Button Text (Optional)</label>
-                      <input 
-                        type="text" 
-                        value={product.buttonText || ''}
-                        onChange={e => updateProduct(i, 'buttonText', e.target.value)}
-                        placeholder="Check It Out"
-                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-                      />
+                      <div className="space-y-1 col-span-2 sm:col-span-1">
+                        <label className="text-xs text-gray-400">Link URL</label>
+                        <input 
+                          type="text" 
+                          value={product.link}
+                          onChange={e => updateProduct(i, 'link', e.target.value)}
+                          className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                        />
+                      </div>
+
+                      <div className="space-y-1 col-span-2 sm:col-span-1">
+                        <label className="text-xs text-gray-400">Button Text (Optional)</label>
+                        <input 
+                          type="text" 
+                          value={product.buttonText || ''}
+                          onChange={e => updateProduct(i, 'buttonText', e.target.value)}
+                          placeholder="Check It Out"
+                          className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* SOCIAL LINKS */}
-          <div className="space-y-4 pt-4">
-            <div className="flex justify-between items-end border-b border-freqGray pb-2">
-              <div>
-                <h2 className="text-lg font-semibold">Social & Brand Links</h2>
-                <p className="text-xs text-gray-500">Toggle or customize individual pills displayed above the footer.</p>
+                ))}
               </div>
-              <button 
-                onClick={addSocialLink}
-                className="flex items-center space-x-1 text-xs bg-[#181818] hover:bg-[#252525] border border-gray-700 text-gray-200 px-2.5 py-1.5 rounded-md transition-colors"
-              >
-                <Plus size={14} />
-                <span>Add Link</span>
-              </button>
             </div>
+          )}
 
-            <div className="space-y-3">
-              {(data.socialLinks || DEFAULT_SOCIALS).map((social, i) => (
-                <div 
-                  key={social.id}
-                  className={`flex items-center space-x-3 p-3 rounded-lg border transition-all ${
-                    social.enabled 
-                      ? 'bg-[#101010] border-gray-800' 
-                      : 'bg-[#0a0a0a] border-gray-900 opacity-60'
-                  }`}
-                >
-                  {/* Enable / Disable Toggle */}
-                  <label className="flex items-center cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={social.enabled}
-                      onChange={e => updateSocialLink(i, 'enabled', e.target.checked)}
-                      className="rounded border-gray-700 bg-freqDarker text-freqBlue focus:ring-0 cursor-pointer"
-                    />
-                  </label>
-
-                  {/* Name */}
-                  <div className="w-1/3">
-                    <input
-                      type="text"
-                      value={social.name}
-                      onChange={e => updateSocialLink(i, 'name', e.target.value)}
-                      placeholder="Label (e.g. Instagram)"
-                      className="w-full bg-freqDarker border border-gray-800 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-freqBlue"
-                    />
+          {/* TAB 3: FOOTER & SOCIALS & TEMPLATES */}
+          {activeTab === 'footer' && (
+            <div className="space-y-6">
+              {/* SOCIAL LINKS */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-end border-b border-freqGray pb-2">
+                  <div>
+                    <h2 className="text-lg font-semibold">Social & Brand Links</h2>
+                    <p className="text-xs text-gray-500">Toggle or customize individual pills displayed above the footer.</p>
                   </div>
-
-                  {/* URL */}
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={social.url}
-                      onChange={e => updateSocialLink(i, 'url', e.target.value)}
-                      placeholder="https://..."
-                      className="w-full bg-freqDarker border border-gray-800 rounded px-2.5 py-1.5 text-xs text-gray-300 focus:outline-none focus:border-freqBlue font-mono"
-                    />
-                  </div>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => removeSocialLink(i)}
-                    className="text-gray-600 hover:text-red-400 p-1 transition-colors"
-                    title="Remove social link"
+                  <button 
+                    onClick={addSocialLink}
+                    className="flex items-center space-x-1 text-xs bg-[#181818] hover:bg-[#252525] border border-gray-700 text-gray-200 px-2.5 py-1.5 rounded-md transition-colors"
                   >
-                    <Trash2 size={15} />
+                    <Plus size={14} />
+                    <span>Add Link</span>
                   </button>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="space-y-4 pt-4">
-            <h2 className="text-lg font-semibold border-b border-freqGray pb-2">Footer Settings</h2>
-            <div className="space-y-1">
-              <label className="text-sm text-gray-300">Footer Text</label>
-              <textarea 
-                rows={2}
-                value={data.footerText}
-                onChange={e => updateField('footerText', e.target.value)}
-                className="w-full bg-freqGray border border-gray-700 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
-              />
+                <div className="space-y-3">
+                  {(data.socialLinks || DEFAULT_SOCIALS).map((social, i) => (
+                    <div 
+                      key={social.id}
+                      className={`flex items-center space-x-3 p-3 rounded-lg border transition-all ${
+                        social.enabled 
+                          ? 'bg-[#101010] border-gray-800' 
+                          : 'bg-[#0a0a0a] border-gray-900 opacity-60'
+                      }`}
+                    >
+                      {/* Enable / Disable Toggle */}
+                      <label className="flex items-center cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={social.enabled}
+                          onChange={e => updateSocialLink(i, 'enabled', e.target.checked)}
+                          className="rounded border-gray-700 bg-freqDarker text-freqBlue focus:ring-0 cursor-pointer"
+                        />
+                      </label>
+
+                      {/* Name */}
+                      <div className="w-1/3">
+                        <input
+                          type="text"
+                          value={social.name}
+                          onChange={e => updateSocialLink(i, 'name', e.target.value)}
+                          placeholder="Label (e.g. Instagram)"
+                          className="w-full bg-freqDarker border border-gray-800 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-freqBlue"
+                        />
+                      </div>
+
+                      {/* URL */}
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={social.url}
+                          onChange={e => updateSocialLink(i, 'url', e.target.value)}
+                          placeholder="https://..."
+                          className="w-full bg-freqDarker border border-gray-800 rounded px-2.5 py-1.5 text-xs text-gray-300 focus:outline-none focus:border-freqBlue font-mono"
+                        />
+                      </div>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => removeSocialLink(i)}
+                        className="text-gray-600 hover:text-red-400 p-1 transition-colors"
+                        title="Remove social link"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* FOOTER SETTINGS */}
+              <div className="space-y-4 pt-4">
+                <h2 className="text-lg font-semibold border-b border-freqGray pb-2">Footer Settings</h2>
+                <div className="space-y-1">
+                  <label className="text-sm text-gray-300">Footer Text</label>
+                  <textarea 
+                    rows={2}
+                    value={data.footerText}
+                    onChange={e => updateField('footerText', e.target.value)}
+                    className="w-full bg-freqGray border border-gray-700 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="pt-8 pb-4 border-t border-freqGray flex justify-end">
             <button 
