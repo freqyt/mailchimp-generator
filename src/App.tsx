@@ -251,7 +251,8 @@ export default function App() {
   const [viewMode, setViewMode] = useState<'preview' | 'code'>('preview');
   const [copied, setCopied] = useState(false);
 
-  const html = generateMailchimpHtml(data);
+  const html = generateMailchimpHtml(data, false);
+  const previewHtml = generateMailchimpHtml(data, true);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(html);
@@ -769,7 +770,7 @@ export default function App() {
             <div 
               className="w-full h-full overflow-y-auto"
               style={{ backgroundColor: '#050505' }}
-              dangerouslySetInnerHTML={{ __html: html.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1] || html }}
+              dangerouslySetInnerHTML={{ __html: previewHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1] || previewHtml }}
             />
           ) : (
             <div className="w-full h-full overflow-y-auto bg-freqDarker p-6 text-sm text-gray-300 font-mono">

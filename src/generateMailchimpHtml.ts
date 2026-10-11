@@ -1,6 +1,6 @@
 import type { EmailData, Product } from './types';
 
-export function generateMailchimpHtml(data: EmailData): string {
+export function generateMailchimpHtml(data: EmailData, isPreview = false): string {
   const generateProductRows = (products: Product[]) => {
     return products.map((product, index) => `
       <tr>
@@ -160,7 +160,7 @@ export function generateMailchimpHtml(data: EmailData): string {
             <td align="center" style="padding: 30px; border-top: 1px solid #1c1c1c; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
               <span style="color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
                 ${data.footerText ? `${data.footerText}<br><br>` : ''}
-                *|LIST:ADDRESS|*<br><br>
+                ${isPreview ? 'Kronprinsensgade 6B, 1114 København K, Denmark' : '*|LIST:ADDRESS|*'}<br><br>
                 <!-- MAILCHIMP REQUIRED TAGS -->
                 <a href="*|UNSUB|*" style="color: #0078D4; text-decoration: underline;">Unsubscribe</a> | 
                 <a href="*|UPDATE_PROFILE|*" style="color: #0078D4; text-decoration: underline;">Update Preferences</a>
