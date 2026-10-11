@@ -6,6 +6,7 @@ export interface Product {
   iconName?: string;
   iconColor?: string;
   imageUrl: string;
+  originalPrice?: string;
   price: string;
   link: string;
   buttonText?: string;
@@ -26,6 +27,8 @@ export interface UploadedImage {
 }
 
 export interface EmailData {
+  subjectLine?: string;
+  preheader?: string;
   title: string;
   intro: string;
   headerImageUrl: string;

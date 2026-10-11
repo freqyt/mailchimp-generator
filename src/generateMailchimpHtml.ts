@@ -29,7 +29,12 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
               <td align="center" style="padding: ${(product.useIcon && product.iconName && product.iconName !== 'none') || (!product.useIcon && product.imageUrl) ? '0 20px' : '15px 20px 0 20px'};">
                 <h3 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 22px; font-weight: bold; margin: 0 0 10px 0;">${product.name}</h3>
                 <p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0 0 15px 0;">${product.description}</p>
-                ${product.price ? `<p style="color: #0078D4; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: bold; margin: 0 0 20px 0;">${product.price}</p>` : ''}
+                ${product.price ? `
+                  <p style="margin: 0 0 20px 0;">
+                    ${product.originalPrice ? `<span style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #777777; text-decoration: line-through; margin-right: 8px;">${product.originalPrice}</span>` : ''}
+                    <span style="color: #0078D4; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: bold;">${product.price}</span>
+                  </p>
+                ` : ''}
               </td>
             </tr>
             <tr>
@@ -54,7 +59,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${data.title}</title>
+  <title>${data.subjectLine || data.title}</title>
   <style>
     body { margin: 0; padding: 0; background-color: #050505; }
     table, td, tr { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
@@ -63,6 +68,16 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
   </style>
 </head>
 <body style="background-color: #050505; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+  <!-- PREHEADER / PREVIEW TEXT -->
+  ${data.preheader ? `
+  <div style="display: none; font-size: 1px; color: #050505; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+    ${data.preheader}
+  </div>
+  <div style="display: none; font-size: 1px; color: #050505; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+    &#847; &zwnj; &nbsp; &#8199; &shy; &#847; &zwnj; &nbsp; &#8199; &shy; &#847; &zwnj; &nbsp; &#8199; &shy; &#847; &zwnj; &nbsp; &#8199; &shy;
+  </div>
+  ` : ''}
+
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #050505;">
     <tr>
       <td align="center" style="padding: 30px 10px;">

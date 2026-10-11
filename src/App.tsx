@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud, Upload, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud, Upload, Image as ImageIcon, Smartphone, Monitor, Mail } from 'lucide-react';
 import type { EmailData, Product, SocialLink, UploadedImage } from './types';
 import { generateMailchimpHtml } from './generateMailchimpHtml';
 import Login from './Login';
@@ -12,19 +12,23 @@ const DEFAULT_SOCIALS: SocialLink[] = [
 ];
 
 const DEFAULT_DATA: EmailData = {
-  title: 'New Plugins Added to the Vault!',
-  intro: 'Check out the latest additions to freq.yt. We have just dropped some fresh plugins and Kontakt libraries that will take your production to the next level.',
+  subjectLine: 'FLASH SALE (24 hours only) ⏰',
+  preheader: 'Pick any 2 plugins from the vault for only $50. Limited time drop.',
+  title: 'FLASH SALE ⏰',
+  intro: '',
   headerImageUrl: 'https://mailchimp-generator.vercel.app/logo.png',
   headerImageSize: 64,
   products: [
     {
       id: '1',
-      name: 'Analog Warmth Saturation',
-      description: 'Get that classic tape sound directly in your DAW. Perfect for drums, bass, and mastering bus.',
+      name: 'Any 2 Plugins. Your Choice.',
+      description: 'Build your custom bundle from the vault before the timer runs out.',
       useIcon: true,
-      iconName: 'none',
+      iconName: 'gem',
+      iconColor: '#0078D4',
       imageUrl: '',
-      price: '$29.00',
+      originalPrice: '$100',
+      price: 'Only $50',
       link: 'https://list.freq.yt/'
     }
   ],
@@ -44,6 +48,7 @@ export default function App() {
   });
 
   const [isCloudSynced, setIsCloudSynced] = useState(false);
+  const [deviceView, setDeviceView] = useState<'desktop' | 'mobile'>('desktop');
 
   const [data, setData] = useState<EmailData>(() => {
     const saved = localStorage.getItem('freqMailchimpDraft');
@@ -51,6 +56,8 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         if (!parsed.socialLinks) parsed.socialLinks = DEFAULT_SOCIALS;
+        if (!parsed.subjectLine) parsed.subjectLine = DEFAULT_DATA.subjectLine;
+        if (!parsed.preheader) parsed.preheader = DEFAULT_DATA.preheader;
         return parsed;
       } catch (e) {
         return DEFAULT_DATA;
@@ -383,6 +390,71 @@ export default function App() {
             </div>
           )}
 
+          {/* INBOX SIMULATOR & SUBJECT SETTINGS */}
+          <div className="space-y-4 bg-[#0d0d0d] p-4 rounded-xl border border-gray-800">
+            <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+              <div className="flex items-center space-x-2">
+                <Mail size={16} className="text-freqBlue" />
+                <h2 className="text-base font-semibold text-white">Inbox Simulator</h2>
+              </div>
+              <span className="text-[11px] text-gray-500">Subject & Preheader</span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-xs">
+                  <label className="text-gray-300 font-medium">Subject Line</label>
+                  <span className={`text-[11px] ${(data.subjectLine || '').length > 40 ? 'text-amber-400' : 'text-gray-500'}`}>
+                    {(data.subjectLine || '').length} / 40 chars {(data.subjectLine || '').length > 40 && '(may cut off on mobile)'}
+                  </span>
+                </div>
+                <input 
+                  type="text" 
+                  value={data.subjectLine || ''}
+                  onChange={e => updateField('subjectLine', e.target.value)}
+                  placeholder="e.g. FLASH SALE (24 hours only) ⏰"
+                  className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between items-center text-xs">
+                  <label className="text-gray-300 font-medium">Preview Text (Preheader)</label>
+                  <span className="text-[11px] text-gray-500">
+                    {(data.preheader || '').length} chars
+                  </span>
+                </div>
+                <input 
+                  type="text" 
+                  value={data.preheader || ''}
+                  onChange={e => updateField('preheader', e.target.value)}
+                  placeholder="e.g. Pick any 2 plugins from the vault for $50..."
+                  className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                />
+                <p className="text-[11px] text-gray-500">Hidden in the email body, but displays as the preview teaser in Gmail & Apple Mail.</p>
+              </div>
+
+              {/* LIVE INBOX SIMULATION MOCKUP */}
+              <div className="bg-[#141414] border border-[#222] rounded-lg p-3 space-y-1 mt-2">
+                <div className="flex items-center justify-between text-[11px] text-gray-500 mb-0.5">
+                  <span className="font-semibold text-gray-300 flex items-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-freqBlue mr-1.5"></span>
+                    FREQ
+                  </span>
+                  <span>Just now</span>
+                </div>
+                <div className="text-xs truncate">
+                  <span className="font-bold text-white mr-1.5">
+                    {data.subjectLine || 'Untitled Email'}
+                  </span>
+                  <span className="text-gray-400">
+                    — {data.preheader || 'No preview text set (email body will leak here)'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-4">
             <h2 className="text-lg font-semibold border-b border-freqGray pb-2">Global Settings</h2>
             
@@ -514,7 +586,7 @@ export default function App() {
                   <div className="mb-4 text-sm font-medium text-gray-400">Product #{i + 1}</div>
                   
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1 col-span-2 sm:col-span-1">
+                    <div className="space-y-1 col-span-2">
                       <label className="text-xs text-gray-400">Product Name</label>
                       <input 
                         type="text" 
@@ -525,13 +597,24 @@ export default function App() {
                     </div>
                     
                     <div className="space-y-1 col-span-2 sm:col-span-1">
-                      <label className="text-xs text-gray-400">Price (Optional)</label>
+                      <label className="text-xs text-gray-400">Original Price (Strikethrough)</label>
+                      <input 
+                        type="text" 
+                        value={product.originalPrice || ''}
+                        onChange={e => updateProduct(i, 'originalPrice', e.target.value)}
+                        placeholder="e.g. $100"
+                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue text-gray-400"
+                      />
+                    </div>
+
+                    <div className="space-y-1 col-span-2 sm:col-span-1">
+                      <label className="text-xs text-gray-400">Sale Price (Optional)</label>
                       <input 
                         type="text" 
                         value={product.price}
                         onChange={e => updateProduct(i, 'price', e.target.value)}
-                        placeholder="e.g. $49.00"
-                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                        placeholder="e.g. Only $50"
+                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue text-freqBlue font-bold"
                       />
                     </div>
 
@@ -768,21 +851,46 @@ export default function App() {
       {/* RIGHT SIDE - PREVIEW */}
       <div className="w-1/2 h-full flex flex-col bg-freqDark">
         <div className="h-16 border-b border-freqGray flex items-center justify-between px-6 shrink-0">
-          <div className="flex space-x-1 bg-freqGray p-1 rounded-md">
-            <button 
-              onClick={() => setViewMode('preview')}
-              className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-sm transition-colors ${viewMode === 'preview' ? 'bg-freqDarker text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
-            >
-              <Eye size={16} />
-              <span>Preview</span>
-            </button>
-            <button 
-              onClick={() => setViewMode('code')}
-              className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-sm transition-colors ${viewMode === 'code' ? 'bg-freqDarker text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
-            >
-              <Code size={16} />
-              <span>Code</span>
-            </button>
+          <div className="flex items-center space-x-3">
+            <div className="flex space-x-1 bg-freqGray p-1 rounded-md">
+              <button 
+                onClick={() => setViewMode('preview')}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-sm transition-colors ${viewMode === 'preview' ? 'bg-freqDarker text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+              >
+                <Eye size={16} />
+                <span>Preview</span>
+              </button>
+              <button 
+                onClick={() => setViewMode('code')}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-sm transition-colors ${viewMode === 'code' ? 'bg-freqDarker text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+              >
+                <Code size={16} />
+                <span>Code</span>
+              </button>
+            </div>
+
+            {viewMode === 'preview' && (
+              <div className="flex space-x-1 bg-[#141414] border border-gray-800 p-1 rounded-md">
+                <button
+                  type="button"
+                  onClick={() => setDeviceView('desktop')}
+                  className={`flex items-center space-x-1 px-2.5 py-1 rounded text-xs transition-colors ${deviceView === 'desktop' ? 'bg-[#252525] text-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-300'}`}
+                  title="Desktop View (600px)"
+                >
+                  <Monitor size={13} />
+                  <span>Desktop</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeviceView('mobile')}
+                  className={`flex items-center space-x-1 px-2.5 py-1 rounded text-xs transition-colors ${deviceView === 'mobile' ? 'bg-[#252525] text-white shadow-sm font-medium' : 'text-gray-500 hover:text-gray-300'}`}
+                  title="Mobile View (375px)"
+                >
+                  <Smartphone size={13} />
+                  <span>Mobile</span>
+                </button>
+              </div>
+            )}
           </div>
 
           <button 
@@ -796,10 +904,14 @@ export default function App() {
           </button>
         </div>
 
-        <div className="flex-1 overflow-hidden bg-[#e5e5e5]">
+        <div className="flex-1 overflow-hidden bg-[#030303] flex justify-center">
           {viewMode === 'preview' ? (
             <div 
-              className="w-full h-full overflow-y-auto"
+              className={`h-full overflow-y-auto transition-all duration-300 ${
+                deviceView === 'mobile' 
+                  ? 'w-[375px] max-w-[375px] border-x border-[#202020] shadow-2xl bg-[#050505]' 
+                  : 'w-full bg-[#050505]'
+              }`}
               style={{ backgroundColor: '#050505' }}
               dangerouslySetInnerHTML={{ __html: previewHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1] || previewHtml }}
             />
