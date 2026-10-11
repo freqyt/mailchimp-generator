@@ -108,19 +108,41 @@ export function generateMailchimpHtml(data: EmailData): string {
                 <table border="0" cellpadding="0" cellspacing="0">
                   <tr>
                     ${activeSocials.map(s => {
-                      const isIg = s.name.toLowerCase().includes('instagram') || s.url.toLowerCase().includes('instagram') || s.name.toLowerCase().includes('ig');
-                      if (isIg) {
-                        return `
-                          <td align="center" style="padding: 4px 6px;">
-                            <a href="${s.url}" target="_blank" style="background-color: #171115; border: 1px solid #d62976; border-radius: 18px; color: #ffffff; padding: 7px 15px; font-size: 12px; font-family: Helvetica, Arial, sans-serif; text-decoration: none; display: inline-block; font-weight: bold; letter-spacing: 0.2px;">
-                              ${s.name}
-                            </a>
-                          </td>
-                        `;
+                      const nameLower = s.name.toLowerCase();
+                      const urlLower = s.url.toLowerCase();
+
+                      let borderColor = '#252525';
+                      let bgColor = '#141414';
+                      let textColor = '#cccccc';
+                      let fontWeight = '500';
+
+                      if (nameLower.includes('instagram') || urlLower.includes('instagram') || nameLower === 'ig') {
+                        borderColor = '#d62976';
+                        bgColor = '#171115';
+                        textColor = '#ffffff';
+                        fontWeight = 'bold';
+                      } else if (
+                        nameLower.includes('booking') || 
+                        urlLower.includes('booking') || 
+                        nameLower.includes('sounds list') || 
+                        nameLower.includes('sounds') || 
+                        urlLower.includes('list.freq.yt') || 
+                        nameLower.includes('list')
+                      ) {
+                        borderColor = '#0078D4';
+                        bgColor = '#10141a';
+                        textColor = '#ffffff';
+                        fontWeight = 'bold';
+                      } else if (nameLower.includes('youtube') || urlLower.includes('youtube') || urlLower.includes('youtu.be')) {
+                        borderColor = '#FF0000';
+                        bgColor = '#171010';
+                        textColor = '#ffffff';
+                        fontWeight = 'bold';
                       }
+
                       return `
                         <td align="center" style="padding: 4px 6px;">
-                          <a href="${s.url}" target="_blank" style="background-color: #141414; border: 1px solid #252525; border-radius: 18px; color: #cccccc; padding: 7px 14px; font-size: 12px; font-family: Helvetica, Arial, sans-serif; text-decoration: none; display: inline-block; font-weight: 500;">
+                          <a href="${s.url}" target="_blank" style="background-color: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 18px; color: ${textColor}; padding: 7px 15px; font-size: 12px; font-family: Helvetica, Arial, sans-serif; text-decoration: none; display: inline-block; font-weight: ${fontWeight}; letter-spacing: 0.2px;">
                             ${s.name}
                           </a>
                         </td>
