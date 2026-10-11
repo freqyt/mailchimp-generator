@@ -4,7 +4,7 @@ export function generateMailchimpHtml(data: EmailData): string {
   const generateProductRows = (products: Product[]) => {
     return products.map((product, index) => `
       <tr>
-        <td align="center" style="padding: ${index === 0 ? '0' : '20px'} 0 20px 0;">
+        <td align="center" style="padding: ${index === 0 ? '0' : '20px'} 0 ${index === products.length - 1 ? (data.transparentCards ? '6px' : '12px') : '20px'} 0;">
           <table border="0" cellpadding="0" cellspacing="0" width="100%" style="${data.transparentCards ? '' : 'background-color: #1c1c1c; '}border-radius: 8px;">
             ${(product.useIcon && product.iconName && product.iconName !== 'none') ? `
             <tr>
@@ -33,7 +33,7 @@ export function generateMailchimpHtml(data: EmailData): string {
               </td>
             </tr>
             <tr>
-              <td align="center" style="padding: 0 20px 20px 20px;">
+              <td align="center" style="padding: 0 20px ${data.transparentCards ? '8px' : '20px'} 20px;">
                 <table border="0" cellpadding="0" cellspacing="0">
                   <tr>
                     <td align="center" bgcolor="#0078D4" style="border-radius: 4px;">
@@ -104,7 +104,7 @@ export function generateMailchimpHtml(data: EmailData): string {
             if (activeSocials.length === 0) return '';
             return `
             <tr>
-              <td align="center" style="padding: 10px 20px 25px 20px;">
+              <td align="center" style="padding: 6px 20px 25px 20px;">
                 <table border="0" cellpadding="0" cellspacing="0">
                   <tr>
                     ${activeSocials.map(s => {
