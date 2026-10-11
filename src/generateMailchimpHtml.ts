@@ -9,10 +9,10 @@ export function generateMailchimpHtml(data: EmailData): string {
             <tr>
               <td align="center" style="padding: 20px;">
                 ${product.useIcon ? `
-                  <table border="0" cellpadding="0" cellspacing="0" style="background-color: #2a2a2a; border-radius: 50%; width: 64px; height: 64px; margin: 0 auto;">
+                  <table border="0" cellpadding="0" cellspacing="0" style="${data.hideIconCircle ? '' : 'background-color: #2a2a2a; border-radius: 50%; width: 64px; height: 64px; '}margin: 0 auto;">
                     <tr>
-                      <td align="center" valign="middle" height="64">
-                        <img src="https://api.iconify.design/fa6-solid/${product.iconName || 'plug'}.svg?color=white&width=128&height=128" alt="Icon" width="32" height="32" style="display: block; width: 32px; height: 32px; margin: 0 auto;" />
+                      <td align="center" valign="middle" height="${data.hideIconCircle ? '38' : '64'}">
+                        <img src="https://api.iconify.design/fa6-solid/${product.iconName || 'plug'}.svg?color=white&width=128&height=128" alt="Icon" width="${data.hideIconCircle ? '36' : '32'}" height="${data.hideIconCircle ? '36' : '32'}" style="display: block; width: ${data.hideIconCircle ? '36px' : '32px'}; height: ${data.hideIconCircle ? '36px' : '32px'}; margin: 0 auto;" />
                       </td>
                     </tr>
                   </table>

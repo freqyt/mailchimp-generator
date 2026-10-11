@@ -32,5 +32,6 @@ export interface EmailData {
   products: Product[];
   footerText: string;
   transparentCards?: boolean;
+  hideIconCircle?: boolean;
   socialLinks?: SocialLink[];
 }

@@ -27,6 +27,7 @@ const DEFAULT_DATA: EmailData = {
     }
   ],
   footerText: '© 2026 FREQ. All rights reserved. You are receiving this email because you opted in via our website.',
+  hideIconCircle: true,
   socialLinks: DEFAULT_SOCIALS,
 };
 
@@ -463,6 +464,19 @@ export default function App() {
               />
               <label htmlFor="transparentCards" className="text-sm text-gray-300">
                 Transparent Product Cards (remove grey background box)
+              </label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox" 
+                id="hideIconCircle"
+                checked={data.hideIconCircle ?? true}
+                onChange={e => updateField('hideIconCircle', e.target.checked)}
+                className="rounded border-gray-700 bg-freqGray text-freqBlue focus:ring-freqBlue"
+              />
+              <label htmlFor="hideIconCircle" className="text-sm text-gray-300">
+                Remove grey circle behind icons (clean floating icon)
               </label>
             </div>
           </div>
