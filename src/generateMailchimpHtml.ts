@@ -6,23 +6,27 @@ export function generateMailchimpHtml(data: EmailData): string {
       <tr>
         <td align="center" style="padding: ${index === 0 ? '0' : '20px'} 0 20px 0;">
           <table border="0" cellpadding="0" cellspacing="0" width="100%" style="${data.transparentCards ? '' : 'background-color: #1c1c1c; '}border-radius: 8px;">
+            ${(product.useIcon && product.iconName && product.iconName !== 'none') ? `
             <tr>
-              <td align="center" style="padding: 20px;">
-                ${product.useIcon ? `
-                  <table border="0" cellpadding="0" cellspacing="0" style="${data.hideIconCircle ? '' : 'background-color: #2a2a2a; border-radius: 50%; width: 64px; height: 64px; '}margin: 0 auto;">
-                    <tr>
-                      <td align="center" valign="middle" height="${data.hideIconCircle ? '38' : '64'}">
-                        <img src="https://api.iconify.design/fa6-solid/${product.iconName || 'plug'}.svg?color=white&width=128&height=128" alt="Icon" width="${data.hideIconCircle ? '36' : '32'}" height="${data.hideIconCircle ? '36' : '32'}" style="display: block; width: ${data.hideIconCircle ? '36px' : '32px'}; height: ${data.hideIconCircle ? '36px' : '32px'}; margin: 0 auto;" />
-                      </td>
-                    </tr>
-                  </table>
-                ` : product.imageUrl ? `
-                  <img src="${product.imageUrl}" alt="${product.name}" width="100%" style="max-width: 500px; border-radius: 4px; display: block;" />
-                ` : ''}
+              <td align="center" style="padding: 20px 20px 10px 20px;">
+                <table border="0" cellpadding="0" cellspacing="0" style="${data.hideIconCircle ? '' : 'background-color: #2a2a2a; border-radius: 50%; width: 64px; height: 64px; '}margin: 0 auto;">
+                  <tr>
+                    <td align="center" valign="middle" height="${data.hideIconCircle ? '38' : '64'}">
+                      <img src="https://api.iconify.design/fa6-solid/${product.iconName}.svg?color=white&width=128&height=128" alt="Icon" width="${data.hideIconCircle ? '36' : '32'}" height="${data.hideIconCircle ? '36' : '32'}" style="display: block; width: ${data.hideIconCircle ? '36px' : '32px'}; height: ${data.hideIconCircle ? '36px' : '32px'}; margin: 0 auto;" />
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
+            ` : (!product.useIcon && product.imageUrl) ? `
             <tr>
-              <td align="center" style="padding: 0 20px;">
+              <td align="center" style="padding: 20px;">
+                <img src="${product.imageUrl}" alt="${product.name}" width="100%" style="max-width: 500px; border-radius: 4px; display: block;" />
+              </td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td align="center" style="padding: ${(product.useIcon && product.iconName && product.iconName !== 'none') || (!product.useIcon && product.imageUrl) ? '0 20px' : '15px 20px 0 20px'};">
                 <h3 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 22px; font-weight: bold; margin: 0 0 10px 0;">${product.name}</h3>
                 <p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0 0 15px 0;">${product.description}</p>
                 ${product.price ? `<p style="color: #0078D4; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: bold; margin: 0 0 20px 0;">${product.price}</p>` : ''}

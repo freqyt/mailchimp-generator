@@ -21,7 +21,9 @@ const DEFAULT_DATA: EmailData = {
       id: '1',
       name: 'Analog Warmth Saturation',
       description: 'Get that classic tape sound directly in your DAW. Perfect for drums, bass, and mastering bus.',
-      imageUrl: 'https://images.unsplash.com/photo-1598508905848-4fd156822453?w=500&q=80',
+      useIcon: true,
+      iconName: 'none',
+      imageUrl: '',
       price: '$29.00',
       link: 'https://list.freq.yt/'
     }
@@ -276,6 +278,8 @@ export default function App() {
           id: Date.now().toString(),
           name: '',
           description: '',
+          useIcon: true,
+          iconName: 'none',
           imageUrl: '',
           price: '',
           link: ''
@@ -544,20 +548,21 @@ export default function App() {
                       <div className="flex justify-between items-center mb-1">
                         <label className="text-xs text-gray-400">Visual Media</label>
                         <button 
-                          onClick={() => updateProduct(i, 'useIcon', !product.useIcon)}
+                          onClick={() => updateProduct(i, 'useIcon', !(product.useIcon ?? true))}
                           className="text-xs text-freqBlue hover:text-blue-400"
                         >
-                          {product.useIcon ? 'Switch to Image URL' : 'Switch to FontAwesome Icon'}
+                          {(product.useIcon ?? true) ? 'Switch to Image URL' : 'Switch to FontAwesome Icon'}
                         </button>
                       </div>
                       
-                      {product.useIcon ? (
+                      {(product.useIcon ?? true) ? (
                         <div className="flex space-x-2">
                           <select 
-                            value={product.iconName || 'plug'}
+                            value={product.iconName || 'none'}
                             onChange={e => updateProduct(i, 'iconName', e.target.value)}
                             className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
                           >
+                            <option value="none">(None)</option>
                             <option value="plug">Plug</option>
                             <option value="fire">Flame (Fire)</option>
                             <option value="gem">Diamond (Gem)</option>
