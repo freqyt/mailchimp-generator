@@ -11,8 +11,8 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
       return `
       <tr>
-        <td align="center" style="padding: ${index === 0 ? '0' : '20px'} 0 ${index === products.length - 1 ? (data.transparentCards ? '6px' : '12px') : '20px'} 0;">
-          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="${data.transparentCards ? '' : 'background-color: #1c1c1c; '}border-radius: 8px;">
+        <td align="center" bgcolor="#050505" style="padding: ${index === 0 ? '0' : '20px'} 0 ${index === products.length - 1 ? (data.transparentCards ? '6px' : '12px') : '20px'} 0; background-color: #050505;">
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" class="${data.transparentCards ? '' : 'product-card'}" bgcolor="${data.transparentCards ? '#0a0a0a' : '#1c1c1c'}" style="${data.transparentCards ? '' : 'background-color: #1c1c1c; '}border-radius: 8px;">
             ${hasImage ? `
             <!-- PRODUCT BANNER IMAGE -->
             <tr>
@@ -80,10 +80,14 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${data.subjectLine || data.title}</title>
   <style>
-    body { margin: 0; padding: 0; background-color: #050505; }
+    body { margin: 0; padding: 0; background-color: #050505 !important; }
     table, td, tr { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
     a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
+    /* Force dark background on Gmail iOS which strips bgcolor attrs */
+    .email-wrapper { background-color: #050505 !important; }
+    .email-card { background-color: #0a0a0a !important; }
+    .product-card { background-color: #1c1c1c !important; }
   </style>
 </head>
 <body style="background-color: #050505; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
@@ -97,14 +101,15 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
   </div>
   ` : ''}
 
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #050505;">
+  <div class="email-wrapper" style="background-color: #050505; width: 100%;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#050505" style="background-color: #050505;">
     <tr>
-      <td align="center" style="padding: 30px 10px;">
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #0a0a0a; border-radius: 8px;">
+      <td align="center" bgcolor="#050505" style="padding: 30px 10px; background-color: #050505;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-card" bgcolor="#0a0a0a" style="max-width: 600px; background-color: #0a0a0a; border-radius: 8px;">
           <!-- HEADER IMAGE -->
           ${data.headerImageUrl ? `
           <tr>
-            <td align="center" style="padding: ${(data.headerImageSize && data.headerImageSize >= 400) ? '0' : '22px 20px 0 20px'};">
+            <td align="center" bgcolor="#0a0a0a" style="padding: ${(data.headerImageSize && data.headerImageSize >= 400) ? '0' : '22px 20px 0 20px'}; background-color: #0a0a0a;">
               <img 
                 src="${data.headerImageUrl}" 
                 alt="Logo" 
@@ -117,7 +122,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
           <!-- TITLE & INTRO -->
           <tr>
-            <td align="center" style="padding: ${data.headerImageUrl ? '15px' : '30px'} 30px ${data.intro ? '20px' : '0'} 30px;">
+            <td align="center" bgcolor="#0a0a0a" style="padding: ${data.headerImageUrl ? '15px' : '30px'} 30px ${data.intro ? '20px' : '0'} 30px; background-color: #0a0a0a;">
               <h1 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 28px; font-weight: bold; margin: 0 ${data.intro ? '0 20px 0' : '0'};">${data.title}</h1>
               ${data.intro ? `<p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0;">${data.intro}</p>` : ''}
             </td>
@@ -125,7 +130,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
           <!-- PRODUCTS -->
           <tr>
-            <td align="center" style="padding: 0 30px;">
+            <td align="center" bgcolor="#0a0a0a" style="padding: 0 30px; background-color: #0a0a0a;">
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 ${generateProductRows(data.products)}
               </table>
@@ -191,7 +196,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
           <!-- FOOTER -->
           <tr>
-            <td align="center" style="padding: 30px; border-top: 1px solid #1c1c1c; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
+            <td align="center" bgcolor="#0a0a0a" style="padding: 30px; border-top: 1px solid #1c1c1c; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5; background-color: #0a0a0a;">
               <span style="color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
                 ${data.footerText ? `${data.footerText}<br><br>` : ''}
                 ${isPreview ? 'Freq.yt <a href="https://www.google.com/maps/search/Kronprinsensgade+6B%0D%0AK%C3%B8benhavn+K?entry=gmail&source=g" target="_blank" style="color: #0078D4; text-decoration: underline;">Kronprinsensgade 6B København K</a> 1114 Denmark' : '*|LIST:ADDRESS|*'}<br><br>
@@ -205,6 +210,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
       </td>
     </tr>
   </table>
+  </div>
 </body>
 </html>`;
 }

@@ -457,6 +457,12 @@ export default function App() {
                     </div>
                     <input 
                       type="text" 
+                      name="campaign_subject_line"
+                      id="campaign_subject_line"
+                      autoComplete="off"
+                      data-bwignore="true"
+                      data-1p-ignore="true"
+                      data-lpignore="true"
                       value={data.subjectLine || ''}
                       onChange={e => updateField('subjectLine', e.target.value)}
                       placeholder="e.g. FLASH SALE (24 hours only) ⏰"
@@ -473,9 +479,15 @@ export default function App() {
                     </div>
                     <input 
                       type="text" 
+                      name="campaign_preheader_teaser"
+                      id="campaign_preheader_teaser"
+                      autoComplete="off"
+                      data-bwignore="true"
+                      data-1p-ignore="true"
+                      data-lpignore="true"
                       value={data.preheader || ''}
                       onChange={e => updateField('preheader', e.target.value)}
-                      placeholder="e.g. Pick any 2 plugins from the vault for $50..."
+                      placeholder="e.g. Pick any 2 plugins from the catalog for $50..."
                       className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
                     />
                     <p className="text-[11px] text-gray-500">Hidden in the email body, but displays as the preview teaser in Gmail & Apple Mail.</p>
