@@ -9,6 +9,10 @@ const bg = (color: string) => `background-color: ${color}; background-image: lin
 // Only wrap text, never images, or the images get inverted.
 const keepColor = (html: string) => `<span class="gmail-screen"><span class="gmail-difference">${html}</span></span>`;
 
+// Gmail iOS dark mode leaves light text alone but inverts dark text, which turned #0078D4 orange.
+// Blue *text* uses this lighter shade so it reads as "light" and survives; button backgrounds keep #0078D4.
+const accentText = '#66b3ff';
+
 export function generateMailchimpHtml(data: EmailData, isPreview = false): string {
   const generateProductRows = (products: Product[]) => {
     return products.map((product, index) => {
@@ -60,7 +64,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
                 ${product.price ? `
                   <p style="margin: 0 0 20px 0;">
                     ${product.originalPrice ? `<span style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #777777; text-decoration: line-through; margin-right: 8px;">${keepColor(product.originalPrice)}</span>` : ''}
-                    <span style="color: #0078D4; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: bold;">${keepColor(product.price)}</span>
+                    <span style="color: ${accentText}; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: bold;">${keepColor(product.price)}</span>
                   </p>
                 ` : ''}
               </td>
@@ -211,15 +215,20 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
             `;
           })()}
 
+          <!-- FOOTER DIVIDER (a 1px row instead of border-top, since Gmail iOS inverts border colors to white) -->
+          <tr>
+            <td height="1" bgcolor="#1c1c1c" style="height: 1px; font-size: 1px; line-height: 1px; ${bg('#1c1c1c')}">&nbsp;</td>
+          </tr>
+
           <!-- FOOTER -->
           <tr>
-            <td align="center" bgcolor="#0a0a0a" style="padding: 30px; border-top: 1px solid #1c1c1c; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5; ${bg('#0a0a0a')}">
+            <td align="center" bgcolor="#0a0a0a" style="padding: 30px; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5; ${bg('#0a0a0a')}">
               <span style="color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">${keepColor(`
                 ${data.footerText ? `${data.footerText}<br><br>` : ''}
-                ${isPreview ? 'Freq.yt <a href="https://www.google.com/maps/search/Kronprinsensgade+6B%0D%0AK%C3%B8benhavn+K?entry=gmail&source=g" target="_blank" style="color: #0078D4; text-decoration: underline;">Kronprinsensgade 6B København K</a> 1114 Denmark' : '*|LIST:ADDRESS|*'}<br><br>
+                ${isPreview ? `Freq.yt <a href="https://www.google.com/maps/search/Kronprinsensgade+6B%0D%0AK%C3%B8benhavn+K?entry=gmail&source=g" target="_blank" style="color: ${accentText}; text-decoration: underline;">Kronprinsensgade 6B København K</a> 1114 Denmark` : '*|LIST:ADDRESS|*'}<br><br>
                 <!-- MAILCHIMP REQUIRED TAGS -->
-                <a href="*|UNSUB|*" style="color: #0078D4; text-decoration: underline;">Unsubscribe</a> |
-                <a href="*|UPDATE_PROFILE|*" style="color: #0078D4; text-decoration: underline;">Update Preferences</a>
+                <a href="*|UNSUB|*" style="color: ${accentText}; text-decoration: underline;">Unsubscribe</a> |
+                <a href="*|UPDATE_PROFILE|*" style="color: ${accentText}; text-decoration: underline;">Update Preferences</a>
               `)}</span>
             </td>
           </tr>
