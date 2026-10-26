@@ -1,5 +1,14 @@
 import type { EmailData, Product } from './types';
 
+// Gmail iOS dark mode fully inverts background colors (even on already-dark emails) but leaves
+// background images alone, so pairing each color with a solid same-color gradient locks it in place.
+const bg = (color: string) => `background-color: ${color}; background-image: linear-gradient(${color}, ${color});`;
+
+// Gmail iOS dark mode also inverts text colors. This screen/difference blend pair (scoped to Gmail
+// via `u + .body` in the <style> block) cancels the inversion; it's inert in every other client.
+// Only wrap text, never images, or the images get inverted.
+const keepColor = (html: string) => `<span class="gmail-screen"><span class="gmail-difference">${html}</span></span>`;
+
 export function generateMailchimpHtml(data: EmailData, isPreview = false): string {
   const generateProductRows = (products: Product[]) => {
     return products.map((product, index) => {
@@ -12,20 +21,20 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
       return `
       <tr>
-        <td align="center" bgcolor="#050505" style="padding: ${index === 0 ? '0' : '20px'} 0 ${index === products.length - 1 ? (data.transparentCards ? '6px' : '12px') : '20px'} 0; background-color: #050505;">
-          <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${cardBg}" style="background-color: ${cardBg}; border-radius: 8px;">
+        <td align="center" bgcolor="#050505" style="padding: ${index === 0 ? '0' : '20px'} 0 ${index === products.length - 1 ? (data.transparentCards ? '6px' : '12px') : '20px'} 0; ${bg('#050505')}">
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${cardBg}" style="${bg(cardBg)} border-radius: 8px;">
             ${hasImage ? `
             <!-- PRODUCT BANNER IMAGE -->
             <tr>
-              <td align="center" bgcolor="${cardBg}" style="padding: 20px; background-color: ${cardBg};">
+              <td align="center" bgcolor="${cardBg}" style="padding: 20px; ${bg(cardBg)}">
                 <img src="${product.imageUrl}" alt="${product.name}" width="100%" style="max-width: 500px; border-radius: 6px; display: block;" />
               </td>
             </tr>
             ` : (hasIcon && iconPosition === 'top') ? `
             <!-- STANDALONE TOP FLOATING ICON -->
             <tr>
-              <td align="center" bgcolor="${cardBg}" style="padding: 20px 20px 10px 20px; background-color: ${cardBg};">
-                <table border="0" cellpadding="0" cellspacing="0" style="${data.hideIconCircle ? '' : 'background-color: #2a2a2a; border-radius: 50%; width: 64px; height: 64px; '}margin: 0 auto;">
+              <td align="center" bgcolor="${cardBg}" style="padding: 20px 20px 10px 20px; ${bg(cardBg)}">
+                <table border="0" cellpadding="0" cellspacing="0" style="${data.hideIconCircle ? '' : `${bg('#2a2a2a')} border-radius: 50%; width: 64px; height: 64px; `}margin: 0 auto;">
                   <tr>
                     <td align="center" valign="middle" height="${data.hideIconCircle ? '38' : '64'}">
                       <img src="${iconImgUrl}" alt="Icon" width="${data.hideIconCircle ? '36' : '32'}" height="${data.hideIconCircle ? '36' : '32'}" style="display: block; width: ${data.hideIconCircle ? '36px' : '32px'}; height: ${data.hideIconCircle ? '36px' : '32px'}; margin: 0 auto;" />
@@ -38,30 +47,30 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
             <!-- PRODUCT TITLE & DETAILS -->
             <tr>
-              <td align="center" bgcolor="${cardBg}" style="padding: ${hasImage || (hasIcon && iconPosition === 'top') ? '0 20px' : '15px 20px 0 20px'}; background-color: ${cardBg};">
+              <td align="center" bgcolor="${cardBg}" style="padding: ${hasImage || (hasIcon && iconPosition === 'top') ? '0 20px' : '15px 20px 0 20px'}; ${bg(cardBg)}">
                 <h3 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 22px; font-weight: bold; margin: 0 0 10px 0; line-height: 1.3;">
                   ${hasIcon && iconPosition === 'inline' ? `
                     <span style="display: inline-block; vertical-align: middle; margin-right: 8px; line-height: 1;">
                       <img src="${iconImgUrl}" alt="Icon" width="22" height="22" style="display: inline-block; vertical-align: -2px; width: 22px; height: 22px;" />
                     </span>
                   ` : ''}
-                  <span style="vertical-align: middle;">${product.name}</span>
+                  <span style="vertical-align: middle;">${keepColor(product.name)}</span>
                 </h3>
-                <p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0 0 15px 0;">${product.description}</p>
+                <p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0 0 15px 0;">${keepColor(product.description)}</p>
                 ${product.price ? `
                   <p style="margin: 0 0 20px 0;">
-                    ${product.originalPrice ? `<span style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #777777; text-decoration: line-through; margin-right: 8px;">${product.originalPrice}</span>` : ''}
-                    <span style="color: #0078D4; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: bold;">${product.price}</span>
+                    ${product.originalPrice ? `<span style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #777777; text-decoration: line-through; margin-right: 8px;">${keepColor(product.originalPrice)}</span>` : ''}
+                    <span style="color: #0078D4; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: bold;">${keepColor(product.price)}</span>
                   </p>
                 ` : ''}
               </td>
             </tr>
             <tr>
-              <td align="center" bgcolor="${cardBg}" style="padding: 0 20px ${data.transparentCards ? '8px' : '20px'} 20px; background-color: ${cardBg};">
+              <td align="center" bgcolor="${cardBg}" style="padding: 0 20px ${data.transparentCards ? '8px' : '20px'} 20px; ${bg(cardBg)}">
                 <table border="0" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td align="center" bgcolor="#0078D4" style="border-radius: 4px;">
-                      <a href="${product.link}" target="_blank" style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 12px 24px; border: 1px solid #0078D4; display: inline-block; font-weight: bold;">${product.buttonText || 'Check It Out'}</a>
+                    <td align="center" bgcolor="#0078D4" style="${bg('#0078D4')} border-radius: 4px;">
+                      <a href="${product.link}" target="_blank" style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 4px; padding: 12px 24px; border: 1px solid #0078D4; display: inline-block; font-weight: bold;">${keepColor(product.buttonText || 'Check It Out')}</a>
                     </td>
                   </tr>
                 </table>
@@ -79,13 +88,17 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Declare dark mode support so Gmail iOS / Apple Mail don't invert or adapt our colors -->
+  <!-- Tells Apple Mail / Outlook this email is already dark so they don't adapt it. Gmail ignores this;
+       it's handled by the bg() gradients and .gmail-screen/.gmail-difference blend hack below. -->
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
   <title>${data.subjectLine || data.title}</title>
   <style type="text/css">
     :root { color-scheme: light dark; }
     body { margin: 0; padding: 0; background-color: #050505 !important; color-scheme: light dark; }
+    /* Gmail inserts <u></u> before the body, so this only matches inside Gmail */
+    u + .body .gmail-screen { background: #000000; mix-blend-mode: screen; }
+    u + .body .gmail-difference { background: #000000; mix-blend-mode: difference; }
     table, td, tr { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
     a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
@@ -94,7 +107,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
     .product-card { background-color: #1c1c1c !important; }
   </style>
 </head>
-<body bgcolor="#050505" style="background-color: #050505; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+<body class="body" bgcolor="#050505" style="${bg('#050505')} margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
   <!-- PREHEADER / PREVIEW TEXT -->
   ${data.preheader ? `
   <div style="display: none; font-size: 1px; color: #050505; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
@@ -105,15 +118,15 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
   </div>
   ` : ''}
 
-  <div class="email-wrapper" style="background-color: #050505; width: 100%;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#050505" style="background-color: #050505;">
+  <div class="email-wrapper" style="${bg('#050505')} width: 100%;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#050505" style="${bg('#050505')}">
     <tr>
-      <td align="center" bgcolor="#050505" style="padding: 30px 10px; background-color: #050505;">
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-card" bgcolor="#0a0a0a" style="max-width: 600px; background-color: #0a0a0a; border-radius: 8px;">
+      <td align="center" bgcolor="#050505" style="padding: 30px 10px; ${bg('#050505')}">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-card" bgcolor="#0a0a0a" style="max-width: 600px; ${bg('#0a0a0a')} border-radius: 8px;">
           <!-- HEADER IMAGE -->
           ${data.headerImageUrl ? `
           <tr>
-            <td align="center" bgcolor="#0a0a0a" style="padding: ${(data.headerImageSize && data.headerImageSize >= 400) ? '0' : '22px 20px 0 20px'}; background-color: #0a0a0a;">
+            <td align="center" bgcolor="#0a0a0a" style="padding: ${(data.headerImageSize && data.headerImageSize >= 400) ? '0' : '22px 20px 0 20px'}; ${bg('#0a0a0a')}">
               <img 
                 src="${data.headerImageUrl}" 
                 alt="Logo" 
@@ -126,15 +139,15 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
           <!-- TITLE & INTRO -->
           <tr>
-            <td align="center" bgcolor="#0a0a0a" style="padding: ${data.headerImageUrl ? '15px' : '30px'} 30px ${data.intro ? '20px' : '0'} 30px; background-color: #0a0a0a;">
-              <h1 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 28px; font-weight: bold; margin: 0 ${data.intro ? '0 20px 0' : '0'};">${data.title}</h1>
-              ${data.intro ? `<p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0;">${data.intro}</p>` : ''}
+            <td align="center" bgcolor="#0a0a0a" style="padding: ${data.headerImageUrl ? '15px' : '30px'} 30px ${data.intro ? '20px' : '0'} 30px; ${bg('#0a0a0a')}">
+              <h1 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 28px; font-weight: bold; margin: 0 ${data.intro ? '0 20px 0' : '0'};">${keepColor(data.title)}</h1>
+              ${data.intro ? `<p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0;">${keepColor(data.intro)}</p>` : ''}
             </td>
           </tr>
 
           <!-- PRODUCTS -->
           <tr>
-            <td align="center" bgcolor="#0a0a0a" style="padding: 0 30px; background-color: #0a0a0a;">
+            <td align="center" bgcolor="#0a0a0a" style="padding: 0 30px; ${bg('#0a0a0a')}">
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 ${generateProductRows(data.products)}
               </table>
@@ -147,7 +160,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
             if (activeSocials.length === 0) return '';
             return `
             <tr>
-              <td align="center" bgcolor="#0a0a0a" style="padding: 6px 20px 25px 20px; background-color: #0a0a0a;">
+              <td align="center" bgcolor="#0a0a0a" style="padding: 6px 20px 25px 20px; ${bg('#0a0a0a')}">
                 <table border="0" cellpadding="0" cellspacing="0">
                   <tr>
                     ${activeSocials.map(s => {
@@ -184,9 +197,9 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
                       }
 
                       return `
-                        <td align="center" style="padding: 4px 6px;">
-                          <a href="${s.url}" target="_blank" style="background-color: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 18px; color: ${textColor}; padding: 7px 15px; font-size: 12px; font-family: Helvetica, Arial, sans-serif; text-decoration: none; display: inline-block; font-weight: ${fontWeight}; letter-spacing: 0.2px;">
-                            ${s.name}
+                        <td align="center" bgcolor="#0a0a0a" style="padding: 4px 6px; ${bg('#0a0a0a')}">
+                          <a href="${s.url}" target="_blank" style="${bg(bgColor)} border: 1px solid ${borderColor}; border-radius: 18px; color: ${textColor}; padding: 7px 15px; font-size: 12px; font-family: Helvetica, Arial, sans-serif; text-decoration: none; display: inline-block; font-weight: ${fontWeight}; letter-spacing: 0.2px;">
+                            ${keepColor(s.name)}
                           </a>
                         </td>
                       `;
@@ -200,14 +213,14 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
           <!-- FOOTER -->
           <tr>
-            <td align="center" bgcolor="#0a0a0a" style="padding: 30px; border-top: 1px solid #1c1c1c; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5; background-color: #0a0a0a;">
-              <span style="color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
+            <td align="center" bgcolor="#0a0a0a" style="padding: 30px; border-top: 1px solid #1c1c1c; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5; ${bg('#0a0a0a')}">
+              <span style="color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">${keepColor(`
                 ${data.footerText ? `${data.footerText}<br><br>` : ''}
                 ${isPreview ? 'Freq.yt <a href="https://www.google.com/maps/search/Kronprinsensgade+6B%0D%0AK%C3%B8benhavn+K?entry=gmail&source=g" target="_blank" style="color: #0078D4; text-decoration: underline;">Kronprinsensgade 6B København K</a> 1114 Denmark' : '*|LIST:ADDRESS|*'}<br><br>
                 <!-- MAILCHIMP REQUIRED TAGS -->
-                <a href="*|UNSUB|*" style="color: #0078D4; text-decoration: underline;">Unsubscribe</a> | 
+                <a href="*|UNSUB|*" style="color: #0078D4; text-decoration: underline;">Unsubscribe</a> |
                 <a href="*|UPDATE_PROFILE|*" style="color: #0078D4; text-decoration: underline;">Update Preferences</a>
-              </span>
+              `)}</span>
             </td>
           </tr>
         </table>
