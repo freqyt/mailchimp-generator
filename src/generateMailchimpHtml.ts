@@ -9,9 +9,9 @@ const bg = (color: string) => `background-color: ${color}; background-image: lin
 // Only wrap text, never images, or the images get inverted.
 const keepColor = (html: string) => `<span class="gmail-screen"><span class="gmail-difference">${html}</span></span>`;
 
-// Gmail iOS dark mode leaves light text alone but inverts dark text, which turned #0078D4 orange.
-// Blue *text* uses this lighter shade so it reads as "light" and survives; button backgrounds keep #0078D4.
-const accentText = '#66b3ff';
+// Gmail iOS dark mode inverts colored text (even light blue turns orange), so footer links use a
+// light grey that survives inversion; blue is reserved for gradient-locked backgrounds.
+const linkText = '#bbbbbb';
 
 export function generateMailchimpHtml(data: EmailData, isPreview = false): string {
   const generateProductRows = (products: Product[]) => {
@@ -62,10 +62,19 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
                 </h3>
                 <p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0 0 15px 0;">${keepColor(product.description)}</p>
                 ${product.price ? `
-                  <p style="margin: 0 0 20px 0;">
-                    ${product.originalPrice ? `<span style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #777777; text-decoration: line-through; margin-right: 8px;">${keepColor(product.originalPrice)}</span>` : ''}
-                    <span style="color: ${accentText}; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: bold;">${keepColor(product.price)}</span>
-                  </p>
+                  <!-- PRICE BADGE: white text on a gradient-locked blue background, since Gmail iOS inverts blue text to orange -->
+                  <table border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 20px auto;">
+                    <tr>
+                      ${product.originalPrice ? `
+                      <td valign="middle" bgcolor="${cardBg}" style="padding-right: 10px; ${bg(cardBg)}">
+                        <span style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #777777; text-decoration: line-through;">${keepColor(product.originalPrice)}</span>
+                      </td>
+                      ` : ''}
+                      <td valign="middle" bgcolor="#0d2a4a" style="${bg('#0d2a4a')} border-radius: 999px; padding: 6px 16px;">
+                        <span style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 16px; font-weight: bold; line-height: 1.3;">${keepColor(product.price)}</span>
+                      </td>
+                    </tr>
+                  </table>
                 ` : ''}
               </td>
             </tr>
@@ -225,10 +234,10 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
             <td align="center" bgcolor="#0a0a0a" style="padding: 30px; color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5; ${bg('#0a0a0a')}">
               <span style="color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.5;">${keepColor(`
                 ${data.footerText ? `${data.footerText}<br><br>` : ''}
-                ${isPreview ? `Freq.yt <a href="https://www.google.com/maps/search/Kronprinsensgade+6B%0D%0AK%C3%B8benhavn+K?entry=gmail&source=g" target="_blank" style="color: ${accentText}; text-decoration: underline;">Kronprinsensgade 6B København K</a> 1114 Denmark` : '*|LIST:ADDRESS|*'}<br><br>
+                ${isPreview ? `Freq.yt <a href="https://www.google.com/maps/search/Kronprinsensgade+6B%0D%0AK%C3%B8benhavn+K?entry=gmail&source=g" target="_blank" style="color: ${linkText}; text-decoration: underline;">Kronprinsensgade 6B København K</a> 1114 Denmark` : '*|LIST:ADDRESS|*'}<br><br>
                 <!-- MAILCHIMP REQUIRED TAGS -->
-                <a href="*|UNSUB|*" style="color: ${accentText}; text-decoration: underline;">Unsubscribe</a> |
-                <a href="*|UPDATE_PROFILE|*" style="color: ${accentText}; text-decoration: underline;">Update Preferences</a>
+                <a href="*|UNSUB|*" style="color: ${linkText}; text-decoration: underline;">Unsubscribe</a> |
+                <a href="*|UPDATE_PROFILE|*" style="color: ${linkText}; text-decoration: underline;">Update Preferences</a>
               `)}</span>
             </td>
           </tr>
