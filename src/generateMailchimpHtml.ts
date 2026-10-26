@@ -62,19 +62,16 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
                 </h3>
                 <p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0 0 15px 0;">${keepColor(product.description)}</p>
                 ${product.price ? `
-                  <!-- PRICE: white text with a blue accent bar. The bar is a gradient-locked cell background
-                       rather than blue text, since Gmail iOS inverts blue text to orange. -->
+                  <!-- PRICE: big white text, no blue, since Gmail iOS inverts blue text to orange -->
                   <table border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 20px auto;">
                     <tr>
-                      <td width="3" bgcolor="#0078D4" style="width: 3px; font-size: 0; line-height: 0; ${bg('#0078D4')}">&nbsp;</td>
-                      <td width="10" bgcolor="${cardBg}" style="width: 10px; font-size: 0; line-height: 0; ${bg(cardBg)}">&nbsp;</td>
                       ${product.originalPrice ? `
                       <td valign="middle" bgcolor="${cardBg}" style="padding-right: 10px; ${bg(cardBg)}">
-                        <span style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #777777; text-decoration: line-through;">${keepColor(product.originalPrice)}</span>
+                        <span style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; color: #777777; text-decoration: line-through;">${keepColor(product.originalPrice)}</span>
                       </td>
                       ` : ''}
                       <td valign="middle" bgcolor="${cardBg}" style="${bg(cardBg)}">
-                        <span style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 22px; font-weight: bold; line-height: 1.3;">${keepColor(product.price)}</span>
+                        <span style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 26px; font-weight: bold; line-height: 1.2;">${keepColor(product.price)}</span>
                       </td>
                     </tr>
                   </table>
