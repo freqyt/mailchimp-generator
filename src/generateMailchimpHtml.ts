@@ -13,6 +13,9 @@ const keepColor = (html: string) => `<span class="gmail-screen"><span class="gma
 // light grey that survives inversion; blue is reserved for gradient-locked backgrounds.
 const linkText = '#bbbbbb';
 
+// Served by api/countdown.ts on the production deployment, since the image must be reachable from any inbox
+const COUNTDOWN_URL = 'https://mailchimp-generator.vercel.app/api/countdown';
+
 export function generateMailchimpHtml(data: EmailData, isPreview = false): string {
   const generateProductRows = (products: Product[]) => {
     return products.map((product, index) => {
@@ -157,6 +160,16 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
               ${data.intro ? `<p style="color: #cccccc; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; margin: 0;">${keepColor(data.intro)}</p>` : ''}
             </td>
           </tr>
+
+          <!-- COUNTDOWN TIMER (an animated GIF regenerated on every open; images aren't touched by Gmail dark mode) -->
+          ${data.countdownEnabled && data.countdownEnd ? `
+          <tr>
+            <td align="center" bgcolor="#0a0a0a" style="padding: 20px 30px 25px 30px; ${bg('#0a0a0a')}">
+              ${data.countdownLabel ? `<p style="color: #888888; font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 12px 0;">${keepColor(data.countdownLabel)}</p>` : ''}
+              <img src="${COUNTDOWN_URL}?end=${encodeURIComponent(data.countdownEnd)}" alt="Ends ${new Date(data.countdownEnd).toUTCString()}" width="480" style="width: 480px; max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+            </td>
+          </tr>
+          ` : ''}
 
           <!-- PRODUCTS -->
           <tr>

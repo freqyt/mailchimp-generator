@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud, Upload, Image as ImageIcon, Smartphone, Monitor, Mail, Package, Share2 } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Plus, Trash2, Copy, Eye, Code, LogOut, Cloud, Upload, Image as ImageIcon, Smartphone, Monitor, Mail, Package, Share2, Moon, TriangleAlert, CircleCheck, Timer } from 'lucide-react';
 import type { EmailData, Product, SocialLink, UploadedImage } from './types';
 import { generateMailchimpHtml } from './generateMailchimpHtml';
+import { simulateGmailDark } from './simulateGmailDark';
+import { checkEmail } from './emailChecks';
 import Login from './Login';
 
 const DEFAULT_SOCIALS: SocialLink[] = [
@@ -35,6 +37,12 @@ const DEFAULT_DATA: EmailData = {
   footerText: '© 2026 FREQ. All rights reserved. You are receiving this email because you opted in via our website.',
   hideIconCircle: true,
   socialLinks: DEFAULT_SOCIALS,
+};
+
+// <input type="datetime-local"> wants local "YYYY-MM-DDTHH:mm", but we store UTC ISO timestamps
+const toLocalInputValue = (iso: string) => {
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 };
 
 interface SavedTemplate {
@@ -259,10 +267,20 @@ export default function App() {
   const [viewMode, setViewMode] = useState<'preview' | 'code'>('preview');
   const [copied, setCopied] = useState(false);
 
+  const [gmailDark, setGmailDark] = useState(false);
+  const [showChecks, setShowChecks] = useState(false);
+
   const html = generateMailchimpHtml(data, false);
   const previewHtml = generateMailchimpHtml(data, true);
+  const displayedPreviewHtml = useMemo(() => gmailDark ? simulateGmailDark(previewHtml) : previewHtml, [gmailDark, previewHtml]);
+  const issues = useMemo(() => checkEmail(data, html), [data, html]);
+  const errorCount = issues.filter(i => i.level === 'error').length;
 
   const handleCopy = () => {
+    if (errorCount > 0 && !window.confirm(`This email has ${errorCount} problem${errorCount === 1 ? '' : 's'} (see Checks). Copy anyway?`)) {
+      setShowChecks(true);
+      return;
+    }
     navigator.clipboard.writeText(html);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -618,6 +636,70 @@ export default function App() {
                     </label>
                   </div>
                 </div>
+              </div>
+
+              {/* COUNTDOWN TIMER */}
+              <div className="space-y-3 bg-[#0d0d0d] p-4 rounded-xl border border-gray-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Timer size={16} className="text-freqBlue" />
+                    <h2 className="text-base font-semibold text-white">Countdown Timer</h2>
+                  </div>
+                  <label className="flex items-center space-x-2 text-xs text-gray-400 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={!!data.countdownEnabled}
+                      onChange={e => {
+                        updateField('countdownEnabled', e.target.checked);
+                        if (e.target.checked && !data.countdownEnd) {
+                          updateField('countdownEnd', new Date(Date.now() + 24 * 3600 * 1000).toISOString());
+                        }
+                        if (e.target.checked && data.countdownLabel === undefined) {
+                          updateField('countdownLabel', 'Sale ends in');
+                        }
+                      }}
+                      className="rounded border-gray-700 bg-freqGray text-freqBlue focus:ring-freqBlue"
+                    />
+                    <span>Show in email</span>
+                  </label>
+                </div>
+                <p className="text-[11px] text-gray-500">A live timer image below the title. It's redrawn every time the email is opened, so it always shows the real time left.</p>
+
+                {data.countdownEnabled && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1 col-span-2 sm:col-span-1">
+                      <label className="text-xs text-gray-400">Ends at (your local time)</label>
+                      <input
+                        type="datetime-local"
+                        value={data.countdownEnd ? toLocalInputValue(data.countdownEnd) : ''}
+                        onChange={e => updateField('countdownEnd', e.target.value ? new Date(e.target.value).toISOString() : '')}
+                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue [color-scheme:dark]"
+                      />
+                      <div className="flex space-x-1 pt-1">
+                        {[24, 48, 72].map(hours => (
+                          <button
+                            key={hours}
+                            type="button"
+                            onClick={() => updateField('countdownEnd', new Date(Date.now() + hours * 3600 * 1000).toISOString())}
+                            className="text-[11px] bg-[#181818] hover:bg-[#252525] border border-gray-800 text-gray-300 px-2 py-0.5 rounded transition-colors"
+                          >
+                            +{hours}h from now
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-1 col-span-2 sm:col-span-1">
+                      <label className="text-xs text-gray-400">Label above timer (optional)</label>
+                      <input
+                        type="text"
+                        value={data.countdownLabel || ''}
+                        onChange={e => updateField('countdownLabel', e.target.value)}
+                        placeholder="Sale ends in"
+                        className="w-full bg-freqDarker border border-gray-800 rounded-md p-2 text-sm focus:outline-none focus:border-freqBlue"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1000,9 +1082,38 @@ export default function App() {
                 </button>
               </div>
             )}
+
+            {viewMode === 'preview' && (
+              <button
+                type="button"
+                onClick={() => setGmailDark(v => !v)}
+                className={`flex items-center space-x-1 px-2.5 py-1.5 rounded-md text-xs border whitespace-nowrap transition-colors ${gmailDark ? 'bg-[#252525] border-gray-600 text-white font-medium' : 'bg-[#141414] border-gray-800 text-gray-500 hover:text-gray-300'}`}
+                title="Approximate how Gmail's iOS app recolors the email in dark mode"
+              >
+                <Moon size={13} />
+                <span>Gmail Dark</span>
+              </button>
+            )}
           </div>
 
-          <button 
+          <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={() => setShowChecks(v => !v)}
+            className={`flex items-center space-x-1.5 px-3 py-2 rounded-md text-sm border whitespace-nowrap transition-colors ${
+              errorCount > 0
+                ? 'border-red-900 bg-red-950/40 text-red-400 hover:bg-red-950/70'
+                : issues.length > 0
+                  ? 'border-amber-900 bg-amber-950/30 text-amber-400 hover:bg-amber-950/60'
+                  : 'border-green-900 bg-green-950/30 text-green-400 hover:bg-green-950/60'
+            }`}
+            title="Pre-send checklist"
+          >
+            {issues.length > 0 ? <TriangleAlert size={15} /> : <CircleCheck size={15} />}
+            <span>{issues.length > 0 ? `${issues.length} Check${issues.length === 1 ? '' : 's'}` : 'Ready'}</span>
+          </button>
+
+          <button
             onClick={handleCopy}
             className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               copied ? 'bg-green-600 text-white' : 'bg-freqBlue hover:bg-blue-600 text-white'
@@ -1011,7 +1122,31 @@ export default function App() {
             <Copy size={16} />
             <span>{copied ? 'Copied HTML!' : 'Copy to Mailchimp'}</span>
           </button>
+          </div>
         </div>
+
+        {showChecks && (
+          <div className="border-b border-freqGray bg-[#0b0b0b] px-6 py-3 shrink-0 max-h-56 overflow-y-auto">
+            {issues.length === 0 ? (
+              <p className="flex items-center text-sm text-green-400"><CircleCheck size={15} className="mr-2" /> All checks passed. Ready to copy into Mailchimp.</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {issues.map((issue, i) => (
+                  <li key={i} className={`flex items-start text-sm ${issue.level === 'error' ? 'text-red-400' : 'text-amber-400'}`}>
+                    <TriangleAlert size={14} className="mr-2 mt-0.5 shrink-0" />
+                    <span>{issue.message}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {viewMode === 'preview' && gmailDark && (
+          <div className="bg-[#111] border-b border-freqGray px-6 py-1.5 text-[11px] text-gray-500 shrink-0">
+            Approximating Gmail's iOS app in dark mode: unlocked backgrounds and borders get inverted, colored text flips hue. Send a real test to be sure.
+          </div>
+        )}
 
         <div className="flex-1 overflow-hidden bg-[#030303] flex justify-center">
           {viewMode === 'preview' ? (
@@ -1022,7 +1157,7 @@ export default function App() {
                   : 'w-full bg-[#050505]'
               }`}
               style={{ backgroundColor: '#050505' }}
-              dangerouslySetInnerHTML={{ __html: previewHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1] || previewHtml }}
+              dangerouslySetInnerHTML={{ __html: displayedPreviewHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1] || previewHtml }}
             />
           ) : (
             <div className="w-full h-full overflow-y-auto bg-freqDarker p-6 text-sm text-gray-300 font-mono">

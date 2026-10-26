@@ -40,4 +40,7 @@ export interface EmailData {
   hideIconCircle?: boolean;
   defaultIconPosition?: 'top' | 'inline' | 'badge';
   socialLinks?: SocialLink[];
+  countdownEnabled?: boolean;
+  countdownEnd?: string; // ISO timestamp
+  countdownLabel?: string;
 }
