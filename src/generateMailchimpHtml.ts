@@ -8,22 +8,23 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
       const iconPosition = product.iconPosition || data.defaultIconPosition || 'inline';
 
       const iconImgUrl = hasIcon ? `https://api.iconify.design/fa6-solid/${product.iconName}.svg?color=${encodeURIComponent(product.iconColor || '#0078D4')}&width=128&height=128` : '';
+      const cardBg = data.transparentCards ? '#0a0a0a' : '#1c1c1c';
 
       return `
       <tr>
         <td align="center" bgcolor="#050505" style="padding: ${index === 0 ? '0' : '20px'} 0 ${index === products.length - 1 ? (data.transparentCards ? '6px' : '12px') : '20px'} 0; background-color: #050505;">
-          <table border="0" cellpadding="0" cellspacing="0" width="100%" class="${data.transparentCards ? '' : 'product-card'}" bgcolor="${data.transparentCards ? '#0a0a0a' : '#1c1c1c'}" style="${data.transparentCards ? '' : 'background-color: #1c1c1c; '}border-radius: 8px;">
+          <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${cardBg}" style="background-color: ${cardBg}; border-radius: 8px;">
             ${hasImage ? `
             <!-- PRODUCT BANNER IMAGE -->
             <tr>
-              <td align="center" style="padding: 20px;">
+              <td align="center" bgcolor="${cardBg}" style="padding: 20px; background-color: ${cardBg};">
                 <img src="${product.imageUrl}" alt="${product.name}" width="100%" style="max-width: 500px; border-radius: 6px; display: block;" />
               </td>
             </tr>
             ` : (hasIcon && iconPosition === 'top') ? `
             <!-- STANDALONE TOP FLOATING ICON -->
             <tr>
-              <td align="center" style="padding: 20px 20px 10px 20px;">
+              <td align="center" bgcolor="${cardBg}" style="padding: 20px 20px 10px 20px; background-color: ${cardBg};">
                 <table border="0" cellpadding="0" cellspacing="0" style="${data.hideIconCircle ? '' : 'background-color: #2a2a2a; border-radius: 50%; width: 64px; height: 64px; '}margin: 0 auto;">
                   <tr>
                     <td align="center" valign="middle" height="${data.hideIconCircle ? '38' : '64'}">
@@ -37,7 +38,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
             <!-- PRODUCT TITLE & DETAILS -->
             <tr>
-              <td align="center" style="padding: ${hasImage || (hasIcon && iconPosition === 'top') ? '0 20px' : '15px 20px 0 20px'};">
+              <td align="center" bgcolor="${cardBg}" style="padding: ${hasImage || (hasIcon && iconPosition === 'top') ? '0 20px' : '15px 20px 0 20px'}; background-color: ${cardBg};">
                 <h3 style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 22px; font-weight: bold; margin: 0 0 10px 0; line-height: 1.3;">
                   ${hasIcon && iconPosition === 'inline' ? `
                     <span style="display: inline-block; vertical-align: middle; margin-right: 8px; line-height: 1;">
@@ -56,7 +57,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
               </td>
             </tr>
             <tr>
-              <td align="center" style="padding: 0 20px ${data.transparentCards ? '8px' : '20px'} 20px;">
+              <td align="center" bgcolor="${cardBg}" style="padding: 0 20px ${data.transparentCards ? '8px' : '20px'} 20px; background-color: ${cardBg};">
                 <table border="0" cellpadding="0" cellspacing="0">
                   <tr>
                     <td align="center" bgcolor="#0078D4" style="border-radius: 4px;">
@@ -74,23 +75,26 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
   };
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color: #050505;">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Declare dark mode support so Gmail iOS / Apple Mail don't invert or adapt our colors -->
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <title>${data.subjectLine || data.title}</title>
-  <style>
-    body { margin: 0; padding: 0; background-color: #050505 !important; }
+  <style type="text/css">
+    :root { color-scheme: light dark; }
+    body { margin: 0; padding: 0; background-color: #050505 !important; color-scheme: light dark; }
     table, td, tr { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
     a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
-    /* Force dark background on Gmail iOS which strips bgcolor attrs */
     .email-wrapper { background-color: #050505 !important; }
     .email-card { background-color: #0a0a0a !important; }
     .product-card { background-color: #1c1c1c !important; }
   </style>
 </head>
-<body style="background-color: #050505; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+<body bgcolor="#050505" style="background-color: #050505; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
   <!-- PREHEADER / PREVIEW TEXT -->
   ${data.preheader ? `
   <div style="display: none; font-size: 1px; color: #050505; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
@@ -143,7 +147,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
             if (activeSocials.length === 0) return '';
             return `
             <tr>
-              <td align="center" style="padding: 6px 20px 25px 20px;">
+              <td align="center" bgcolor="#0a0a0a" style="padding: 6px 20px 25px 20px; background-color: #0a0a0a;">
                 <table border="0" cellpadding="0" cellspacing="0">
                   <tr>
                     ${activeSocials.map(s => {
