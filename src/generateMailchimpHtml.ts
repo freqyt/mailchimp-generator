@@ -28,7 +28,7 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
 
       return `
       <tr>
-        <td align="center" bgcolor="#050505" style="padding: ${index === 0 ? '0' : '20px'} 0 ${index === products.length - 1 ? (data.transparentCards ? '6px' : '12px') : '20px'} 0; ${bg('#050505')}">
+        <td align="center" bgcolor="#0a0a0a" style="padding: ${index === 0 ? '0' : '20px'} 0 ${index === products.length - 1 ? (data.transparentCards ? '6px' : '12px') : '20px'} 0; ${bg('#0a0a0a')}">
           <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${cardBg}" style="${bg(cardBg)} border-radius: 8px;">
             ${hasImage ? `
             <!-- PRODUCT BANNER IMAGE -->
@@ -128,11 +128,12 @@ export function generateMailchimpHtml(data: EmailData, isPreview = false): strin
   ${data.preheader ? `
   <div style="display: none; font-size: 1px; color: #050505; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
     ${data.preheader}
-  </div>
+  </div>` : ''}
+  <!-- Invisible padding so inbox previews don't pull in body text after the preview text.
+       Always emitted, so it also works when the preview text is set in Mailchimp's own field. -->
   <div style="display: none; font-size: 1px; color: #050505; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
-    &#847; &zwnj; &nbsp; &#8199; &shy; &#847; &zwnj; &nbsp; &#8199; &shy; &#847; &zwnj; &nbsp; &#8199; &shy; &#847; &zwnj; &nbsp; &#8199; &shy;
+    ${'&#847; &zwnj; &nbsp; &#8199; &shy; '.repeat(90)}
   </div>
-  ` : ''}
 
   <div class="email-wrapper" style="${bg('#050505')} width: 100%;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#050505" style="${bg('#050505')}">
